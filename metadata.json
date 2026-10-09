@@ -1,0 +1,6 @@
+{
+  "name": "ShadowNet: Geopolitics of Shadow Networks & Dark Fleets",
+  "description": "Interactive Geopolitical Intelligence Dashboard tracking the convergence of crypto laundering, dark fleet shipping routes, AIS spoofing, and illicit commodity flows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

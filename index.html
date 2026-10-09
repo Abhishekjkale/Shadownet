@@ -1,0 +1,2346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShadowNet: Geopolitics of Shadow Networks & Dark Fleets</title>
+    <meta name="description" content="Interactive Geopolitical Intelligence Dashboard tracking the convergence of crypto laundering, dark fleet shipping routes, AIS spoofing, and illicit commodity flows." />
+    <meta property="og:title" content="ShadowNet: Geopolitics of Shadow Networks & Dark Fleets" />
+    <meta property="og:description" content="Interactive Geopolitical Intelligence Dashboard tracking the convergence of crypto laundering, dark fleet shipping routes, AIS spoofing, and illicit commodity flows." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              cyber: {
+                950: '#070b13',
+                900: '#0c1222',
+                850: '#111a30',
+                800: '#172340',
+                700: '#1f3056',
+                border: '#1f2e4d',
+                subtle: '#2a3d66'
+              },
+              neon: {
+                red: '#ff3366',
+                orange: '#ff6600',
+                amber: '#ffaa00',
+                emerald: '#00f0aa',
+                cyan: '#00e5ff',
+                blue: '#3b82f6',
+                purple: '#a855f7'
+              }
+            },
+            fontFamily: {
+              mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+            }
+          }
+        }
+      };
+    </script>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- D3.js and D3-Sankey -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      /* Custom map styling & dark scrollbars */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #090e1a;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1e2c4a;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #2b406e;
+      }
+
+      .leaflet-container {
+        background-color: #080c16 !important;
+        font-family: inherit;
+      }
+      .leaflet-popup-content-wrapper {
+        background: #0d1527 !important;
+        color: #e2e8f0 !important;
+        border: 1px solid #1e3a5f !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 229, 255, 0.2) !important;
+        border-radius: 8px !important;
+        padding: 4px;
+      }
+      .leaflet-popup-tip {
+        background: #0d1527 !important;
+        border: 1px solid #1e3a5f !important;
+      }
+      .leaflet-popup-content {
+        margin: 10px 14px;
+        line-height: 1.4;
+      }
+
+      /* Glow & pulse animations */
+      @keyframes pulse-slow {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.08); }
+      }
+      .pulse-beacon {
+        animation: pulse-slow 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+      }
+
+      @keyframes radar-sweep {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .radar-sweep-anim {
+        animation: radar-sweep 4s linear infinite;
+        transform-origin: center;
+      }
+
+      .glow-red {
+        box-shadow: 0 0 15px rgba(255, 51, 102, 0.35);
+      }
+      .glow-cyan {
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+      }
+      .glow-emerald {
+        box-shadow: 0 0 15px rgba(0, 240, 170, 0.3);
+      }
+    </style>
+  </head>
+  <body class="bg-cyber-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-neon-cyan/30 selection:text-white">
+
+    <!-- TOP CLASSIFICATION & APP HEADER -->
+    <header class="border-b border-cyber-border bg-cyber-900/90 backdrop-blur sticky top-0 z-40">
+      <!-- Top banner strip -->
+      <div class="bg-cyber-950 px-4 py-1 border-b border-cyber-border/50 text-[11px] font-mono flex flex-wrap justify-between items-center text-slate-400">
+        <div class="flex items-center space-x-3">
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-red-950/80 text-neon-red border border-red-500/40 font-semibold tracking-wider text-[10px]">
+            OPEN SOURCE // UNCLASSIFIED
+          </span>
+          <span class="text-slate-400 hidden sm:inline">FORENSIC-ECONOMIC & MARITIME SECURITY ANALYSIS DESK</span>
+          <span class="text-slate-500 hidden md:inline">|</span>
+          <span class="text-slate-400 hidden md:inline">DOC REF: GSN-OCT2026-FINAL</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-1.5">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-red opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-neon-red"></span>
+            </span>
+            <span class="text-slate-300 font-semibold text-[10px] tracking-wide">THREAT CONDITION: SEVERE (DEFCON 2)</span>
+          </div>
+          <span id="systemTime" class="text-slate-400 hidden lg:inline font-mono text-[10px]">2026-10-08 23:14:52 UTC</span>
+        </div>
+      </div>
+
+      <!-- Main Header Row -->
+      <div class="px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-cyber-850 border border-cyber-border flex items-center justify-center text-neon-cyan shadow-md">
+            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-lg md:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                SHADOW<span class="text-neon-cyan">NET</span>
+                <span class="text-xs font-mono font-normal px-2 py-0.5 rounded bg-cyan-950/60 text-neon-cyan border border-cyan-500/30">C4ISR INTEL v4.2</span>
+              </h1>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              Convergence Intelligence: Cryptocurrencies, Dark Fleets & Transnational Sanctions Evasion
+            </p>
+          </div>
+        </div>
+
+        <!-- Intelligence Advisory Ticker -->
+        <div class="hidden xl:flex items-center max-w-xl bg-cyber-950/80 border border-cyber-border rounded-lg px-3 py-1.5 overflow-hidden text-xs text-slate-300 font-mono">
+          <div class="flex items-center text-neon-amber mr-2 shrink-0">
+            <i data-lucide="radio" class="w-3.5 h-3.5 mr-1 animate-pulse"></i> INTEL FEED:
+          </div>
+          <div class="truncate text-slate-300 text-[11px]" id="advisoryTicker">
+            OFAC Advisory: 19 vessels identified simultaneously spoofing MMSIs • Garantex reconstituted as Grinex • Ruble stablecoin A7A5 ~$1B/day • Tether freezes $27M in USDT
+          </div>
+        </div>
+
+        <!-- Global Action Buttons -->
+        <div class="flex items-center space-x-2">
+          <button id="btnResetFilters" class="px-2.5 py-1.5 rounded-md bg-cyber-850 hover:bg-cyber-800 border border-cyber-border text-slate-300 hover:text-white text-xs font-medium transition flex items-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Reset Filters</span>
+          </button>
+          <button id="btnSimulateSpoofing" class="px-2.5 py-1.5 rounded-md bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/40 text-neon-cyan hover:text-white text-xs font-medium transition flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+            <span>Simulate SAR / AIS</span>
+          </button>
+          <button id="btnExportJSON" class="px-2.5 py-1.5 rounded-md bg-cyber-850 hover:bg-cyber-800 border border-cyber-border text-slate-300 hover:text-white text-xs font-medium transition flex items-center gap-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden md:inline">Export Intel</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="px-4 border-t border-cyber-border/60 flex space-x-1 sm:space-x-2 overflow-x-auto text-xs font-medium scrollbar-none">
+        <button data-tab="map-tab" class="tab-btn active px-3 py-2 border-b-2 border-neon-cyan text-neon-cyan font-semibold flex items-center gap-2 whitespace-nowrap">
+          <i data-lucide="globe-2" class="w-4 h-4"></i>
+          <span>1. Geopolitical Map (Leaflet)</span>
+        </button>
+        <button data-tab="sankey-tab" class="tab-btn px-3 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+          <i data-lucide="git-merge" class="w-4 h-4"></i>
+          <span>2. Crypto-Sankey & Payoff Loop</span>
+        </button>
+        <button data-tab="analytics-tab" class="tab-btn px-3 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+          <i data-lucide="line-chart" class="w-4 h-4"></i>
+          <span>3. Metrics & Time-Series Analytics</span>
+        </button>
+        <button data-tab="dossier-tab" class="tab-btn px-3 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span>4. Vessel & Wallet Registry (<span id="tabVesselCount">12</span>)</span>
+        </button>
+        <button data-tab="policy-tab" class="tab-btn px-3 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+          <i data-lucide="file-check-2" class="w-4 h-4"></i>
+          <span>5. Official Counter-Frameworks</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN DASHBOARD BODY (GRID WITH SIDEBAR & VIEWPORT) -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden relative">
+
+      <!-- LEFT SIDEBAR: FILTERS, KPIS, CONTROLS (3 Cols on lg+) -->
+      <aside class="lg:col-span-3 xl:col-span-3 border-r border-cyber-border bg-cyber-900/95 flex flex-col overflow-y-auto max-h-[calc(100vh-108px)] z-20">
+        
+        <!-- Quick Threat Assessment Banner -->
+        <div class="p-3 bg-cyber-950 border-b border-cyber-border">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-400 font-mono uppercase tracking-wider text-[10px]">ANOMALY INDEX</span>
+            <span class="font-mono text-neon-red font-bold text-xs">84.6% CRITICAL</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-neon-red h-full w-[84.6%]"></div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1 font-mono">
+            Active AIS spoofing clusters detected across 5 operational theatres.
+          </p>
+        </div>
+
+        <!-- METRICS & KPIS PANEL -->
+        <div class="p-3 border-b border-cyber-border space-y-2.5">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="gauge" class="w-3.5 h-3.5 text-neon-cyan"></i> KEY METRICS & KPIS</span>
+            <span class="text-[9px] px-1 py-0.5 rounded bg-slate-800 text-slate-300">LIVE SYNC</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <!-- KPI 1: Illicit Volume -->
+            <div class="bg-cyber-850 p-2.5 rounded-lg border border-cyber-border/80">
+              <div class="text-[10px] text-slate-400 font-mono uppercase truncate">Total Illicit Volume</div>
+              <div id="kpiVolume" class="text-base font-bold font-mono text-neon-emerald mt-0.5">$34.82B</div>
+              <div class="text-[9px] text-slate-400 mt-0.5 font-mono truncate">USDT, BTC & Shadow Oil</div>
+            </div>
+
+            <!-- KPI 2: Tracked Vessels -->
+            <div class="bg-cyber-850 p-2.5 rounded-lg border border-cyber-border/80">
+              <div class="text-[10px] text-slate-400 font-mono uppercase truncate">Tracked Dark Hulls</div>
+              <div id="kpiVessels" class="text-base font-bold font-mono text-neon-cyan mt-0.5">24 Hulls</div>
+              <div class="text-[9px] text-slate-400 mt-0.5 font-mono truncate">12 High-Priority Spotlights</div>
+            </div>
+
+            <!-- KPI 3: Sanctioned Wallets -->
+            <div class="bg-cyber-850 p-2.5 rounded-lg border border-cyber-border/80">
+              <div class="text-[10px] text-slate-400 font-mono uppercase truncate">Flagged Crypto Wallets</div>
+              <div id="kpiWallets" class="text-base font-bold font-mono text-neon-amber mt-0.5">142 Targets</div>
+              <div class="text-[9px] text-slate-400 mt-0.5 font-mono truncate">Lazarus / Garantex / OTC</div>
+            </div>
+
+            <!-- KPI 4: Travel Rule Compliance Deficit -->
+            <div class="bg-cyber-850 p-2.5 rounded-lg border border-cyber-border/80">
+              <div class="text-[10px] text-slate-400 font-mono uppercase truncate">FATF Travel Rule Gap</div>
+              <div id="kpiTravelRule" class="text-base font-bold font-mono text-neon-red mt-0.5">11 / 98</div>
+              <div class="text-[9px] text-slate-400 mt-0.5 font-mono truncate">Enforcing Jurisdictions</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE FILTERS PANEL -->
+        <div class="p-3 border-b border-cyber-border space-y-3">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-neon-cyan"></i> FORENSIC FILTERS</span>
+            <span id="activeFilterBadge" class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-neon-cyan border border-cyan-800">ALL RECORDS</span>
+          </div>
+
+          <!-- Country / Jurisdiction Filter -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">State Actor / Jurisdiction</label>
+            <select id="filterCountry" class="w-full bg-cyber-950 border border-cyber-border rounded-md px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-neon-cyan font-mono">
+              <option value="ALL">All Jurisdictions (Global Shadow Net)</option>
+              <option value="Russia">Russia (Urals Crude, A7A5, Garantex/Grinex)</option>
+              <option value="Iran">Iran (NITC Tankers, South China Sea STS, Bab-el-Mandeb)</option>
+              <option value="North Korea">North Korea (Lazarus Group, Ronin Heists, Arms)</option>
+              <option value="Venezuela">Venezuela (PDVSA Merey Crude, Cuvenpetrol, Aruba)</option>
+            </select>
+          </div>
+
+          <!-- Risk Level Filter -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">Threat Classification</label>
+            <select id="filterRisk" class="w-full bg-cyber-950 border border-cyber-border rounded-md px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-neon-cyan font-mono">
+              <option value="ALL">All Threat Levels</option>
+              <option value="Critical">Critical (OFAC Listed / Active Deception)</option>
+              <option value="High Risk">High Risk (Elderly Tonnage / Price-Cap Breaches)</option>
+              <option value="Suspicious">Suspicious (AIS Gaps / Flag-Hopping)</option>
+            </select>
+          </div>
+
+          <!-- Commodity Filter -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">Illicit Commodity / Flow</label>
+            <select id="filterCommodity" class="w-full bg-cyber-950 border border-cyber-border rounded-md px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-neon-cyan font-mono">
+              <option value="ALL">All Commodities</option>
+              <option value="Crude Oil">Crude Oil (Urals / Iranian / Merey Blend)</option>
+              <option value="Refined Fuel / Condensate">Refined Fuel & Condensate</option>
+              <option value="Weapons & Missile Parts">Weapons & Ballistic Missile Hardware</option>
+              <option value="Grain & Dual-Use">Grain & Dual-Use Materials</option>
+            </select>
+          </div>
+
+          <!-- Financial Rail Filter -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">Settlement / Laundering Rail</label>
+            <select id="filterRail" class="w-full bg-cyber-950 border border-cyber-border rounded-md px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-neon-cyan font-mono">
+              <option value="ALL">All Financial Rails</option>
+              <option value="USDT">Tether (USDT on TRON Network)</option>
+              <option value="A7A5">A7A5 Ruble-Pegged Stablecoin (Kyrgyzstan)</option>
+              <option value="BTC">Bitcoin & Peeling Chains (Sinbad/Blender)</option>
+              <option value="ETH_TORNADO">Ethereum / Tornado Cash / Bridges</option>
+              <option value="XMR">Monero (XMR) Terminal Privacy Layer</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- THEATRE QUICK SELECTOR -->
+        <div class="p-3 border-b border-cyber-border space-y-2">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-neon-cyan"></i> MARITIME THEATRES</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            <button onclick="zoomToTheatre('global')" class="px-2 py-1.5 rounded bg-cyber-850 hover:bg-cyber-800 text-slate-300 hover:text-white border border-cyber-border text-[11px] truncate text-left flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Global View
+            </button>
+            <button onclick="zoomToTheatre('south_china_sea')" class="px-2 py-1.5 rounded bg-cyber-850 hover:bg-cyber-800 text-slate-300 hover:text-white border border-cyber-border text-[11px] truncate text-left flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-amber"></span> S. China Sea
+            </button>
+            <button onclick="zoomToTheatre('baltic')" class="px-2 py-1.5 rounded bg-cyber-850 hover:bg-cyber-800 text-slate-300 hover:text-white border border-cyber-border text-[11px] truncate text-left flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-red"></span> Baltic Sea
+            </button>
+            <button onclick="zoomToTheatre('black_sea')" class="px-2 py-1.5 rounded bg-cyber-850 hover:bg-cyber-800 text-slate-300 hover:text-white border border-cyber-border text-[11px] truncate text-left flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan"></span> Black Sea / Kerch
+            </button>
+            <button onclick="zoomToTheatre('caribbean')" class="px-2 py-1.5 rounded bg-cyber-850 hover:bg-cyber-800 text-slate-300 hover:text-white border border-cyber-border text-[11px] truncate text-left flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-orange"></span> Caribbean Basin
+            </button>
+            <button onclick="zoomToTheatre('red_sea')" class="px-2 py-1.5 rounded bg-cyber-850 hover:bg-cyber-800 text-slate-300 hover:text-white border border-cyber-border text-[11px] truncate text-left flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-purple"></span> Red Sea / Aden
+            </button>
+          </div>
+        </div>
+
+        <!-- MAP LAYER TOGGLES -->
+        <div class="p-3 border-b border-cyber-border space-y-2">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5 text-neon-cyan"></i> LAYER TELEMETRY</span>
+          </div>
+          <div class="space-y-1.5 text-xs text-slate-300">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="layerRoutes" checked class="rounded bg-cyber-950 border-cyber-border text-neon-cyan focus:ring-0">
+              <span class="text-[11px]">Dark Fleet Corridors & Polylines</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="layerSpoofed" checked class="rounded bg-cyber-950 border-cyber-border text-neon-red focus:ring-0">
+              <span class="text-[11px] text-neon-red">Spoofed AIS / GNSS Ghost Signals</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="layerSTS" checked class="rounded bg-cyber-950 border-cyber-border text-neon-amber focus:ring-0">
+              <span class="text-[11px] text-neon-amber">STS Ship-to-Ship Anchorages</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="layerPorts" checked class="rounded bg-cyber-950 border-cyber-border text-neon-cyan focus:ring-0">
+              <span class="text-[11px]">Key Loading & Off-Ramp Hubs</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- SELECTED ENTITY QUICK DOSSIER -->
+        <div class="p-3 flex-1 bg-cyber-950/60">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between mb-2">
+            <span class="flex items-center gap-1.5"><i data-lucide="target" class="w-3.5 h-3.5 text-neon-red"></i> TARGET INSPECTOR</span>
+            <span class="text-[9px] text-slate-500 font-mono">CLICK MAP OBJECT</span>
+          </div>
+
+          <div id="inspectorEmptyState" class="p-4 rounded border border-dashed border-cyber-border/80 text-center text-slate-500 text-xs">
+            <i data-lucide="crosshair" class="w-6 h-6 mx-auto mb-2 text-slate-600"></i>
+            Select any vessel, spoofed waypoint, or STS zone on the map or registry to load forensic telemetry.
+          </div>
+
+          <div id="inspectorContent" class="hidden space-y-2.5 text-xs font-mono">
+            <div class="flex items-start justify-between">
+              <div>
+                <div id="insVesselName" class="text-sm font-bold text-white font-sans">CORONA FUN</div>
+                <div id="insVesselIMO" class="text-[10px] text-slate-400">IMO 9276573 • MMSI 636019842</div>
+              </div>
+              <span id="insRiskBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-neon-red border border-red-500/50">CRITICAL</span>
+            </div>
+
+            <div class="space-y-1.5 text-[11px] text-slate-300 bg-cyber-900 p-2 rounded border border-cyber-border">
+              <div class="flex justify-between"><span class="text-slate-400">Flag State:</span> <span id="insFlag" class="font-semibold text-white">Cameroon (Elderly 24y)</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Jurisdiction:</span> <span id="insJurisdiction">Iran</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Cargo / Volume:</span> <span id="insCargo">Iranian Crude ($84.2M)</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Deception:</span> <span id="insDeception" class="text-neon-amber">Multi-leg STS & Spoofed AIS</span></div>
+            </div>
+
+            <div>
+              <div class="text-[10px] text-slate-400 mb-1">ASSOCIATED CRYPTO WALLET / OFF-RAMP:</div>
+              <div id="insWallet" class="bg-cyber-950 p-2 rounded border border-cyber-border text-[10px] break-all text-neon-emerald">
+                TJ8b...k4Lm (USDT TRON Settlement)
+              </div>
+            </div>
+
+            <div class="text-[10px] text-slate-400 italic" id="insIntelNote">
+              "OFAC March 2025 Advisory designated entity executing 4-stage STS off Kuantan with falsified Malaysian crude certificate."
+            </div>
+
+            <div class="pt-1 flex gap-2">
+              <button id="insFocusMapBtn" class="flex-1 py-1.5 px-2 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-neon-cyan text-[11px] rounded transition font-sans font-medium">
+                Focus on Map
+              </button>
+              <button id="insFullDossierBtn" class="flex-1 py-1.5 px-2 bg-cyber-850 hover:bg-cyber-800 border border-cyber-border text-slate-200 text-[11px] rounded transition font-sans font-medium">
+                View Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- MAIN VIEWPORT (9 Cols on lg+) -->
+      <main class="lg:col-span-9 xl:col-span-9 bg-cyber-950 flex flex-col relative h-[calc(100vh-108px)] overflow-hidden">
+
+        <!-- TAB 1: GEOPOLITICAL MAP VIEW -->
+        <div id="view-map" class="tab-view active-view w-full h-full relative flex flex-col">
+          <!-- Floating Map Legend Overlay -->
+          <div class="absolute top-4 right-4 z-[1000] bg-cyber-900/90 backdrop-blur-md border border-cyber-border p-3 rounded-lg shadow-2xl text-xs max-w-xs pointer-events-auto font-mono hidden md:block">
+            <div class="flex items-center justify-between font-bold text-slate-200 border-b border-cyber-border pb-1 mb-2">
+              <span class="flex items-center gap-1.5"><i data-lucide="compass" class="w-3.5 h-3.5 text-neon-cyan"></i> MAP LEGEND & ADVISORY</span>
+              <span class="text-[9px] text-slate-400">OCT 2026</span>
+            </div>
+            <div class="space-y-1.5 text-[11px]">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-neon-red inline-block shadow-sm"></span>
+                <span>Critical / Designated Vessel</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-neon-amber inline-block"></span>
+                <span>Suspicious / AIS Blackout Vessel</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-purple-500 border border-dashed border-white inline-block"></span>
+                <span>Spoofed AIS Ghost Signal (Radar)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded border border-amber-400 bg-amber-500/20 inline-block"></span>
+                <span>STS Ship-to-Ship Anchorage</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-0.5 bg-neon-cyan inline-block"></span>
+                <span>Dark Tanker Shipping Corridor</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-0.5 border-t border-dashed border-neon-red inline-block"></span>
+                <span>Spoofed Coordinate Offset Vector</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- The Leaflet Map Container -->
+          <div id="map" class="w-full flex-1 z-10"></div>
+
+          <!-- Bottom map status footer -->
+          <div class="bg-cyber-900 border-t border-cyber-border px-4 py-2 flex flex-wrap justify-between items-center text-xs font-mono text-slate-400 z-20">
+            <div class="flex items-center space-x-3">
+              <span class="flex items-center gap-1 text-slate-300">
+                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-neon-cyan"></i> Coordinates: <span id="mapCursorCoords" class="text-neon-cyan">30.00° N, 60.00° E</span>
+              </span>
+              <span class="text-slate-600">|</span>
+              <span id="filteredVesselStatus">Displaying 12 of 12 Priority Targets</span>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span class="text-slate-400 hidden sm:inline">SAR Satellite Tasking: Sentinel-1 / ICEYE Persistence Active</span>
+              <span class="text-neon-emerald font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-neon-emerald"></span> FEED ACTIVE
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: CRYPTO-SANKEY & PAYOFF LOOP -->
+        <div id="view-sankey" class="tab-view hidden w-full h-full overflow-y-auto p-4 md:p-6 space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-cyber-border pb-4">
+            <div>
+              <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                <i data-lucide="git-merge" class="w-5 h-5 text-neon-emerald"></i>
+                The Illicit Value Chain: Shadow Logistics to Shadow Currencies
+              </h2>
+              <p class="text-xs text-slate-400 mt-1 max-w-3xl">
+                Module 4 & Key Finding 1: Crypto and dark fleets operate as a single fused financial ecosystem. Oil revenues, state-sponsored cyber-heists, and maritime extortion settle via USDT on TRON, Garantex, and privacy coins to fund fleet operations.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="px-2.5 py-1 rounded bg-emerald-950/60 border border-emerald-500/30 text-neon-emerald text-xs font-mono">
+                5-STAGE SELF-FINANCING LOOP
+              </span>
+            </div>
+          </div>
+
+          <!-- THE 5 STAGES OF THE PAYOFF LOOP (CARDS) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-border hover:border-neon-cyan/50 transition">
+              <div class="flex justify-between items-center text-xs font-mono text-neon-cyan mb-1">
+                <span>STAGE 1</span>
+                <i data-lucide="ship" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="font-bold text-white text-xs">Evasion Operation</div>
+              <div class="text-[11px] text-slate-300 mt-1">Dark fleet STS transfer of sanctioned oil or grain.</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-2 bg-cyber-950 p-1.5 rounded border border-cyber-border/60">
+                Financial Rail: Trade credit & shell invoices.
+              </div>
+            </div>
+
+            <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-border hover:border-neon-emerald/50 transition">
+              <div class="flex justify-between items-center text-xs font-mono text-neon-emerald mb-1">
+                <span>STAGE 2</span>
+                <i data-lucide="repeat" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="font-bold text-white text-xs">Settlement Rail</div>
+              <div class="text-[11px] text-slate-300 mt-1">OTC brokers convert proceeds into USDT on TRON or A7A5.</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-2 bg-cyber-950 p-1.5 rounded border border-cyber-border/60">
+                Venues: Garantex/Grinex, Telegram P2P desks.
+              </div>
+            </div>
+
+            <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-border hover:border-neon-amber/50 transition">
+              <div class="flex justify-between items-center text-xs font-mono text-neon-amber mb-1">
+                <span>STAGE 3</span>
+                <i data-lucide="shuffle" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="font-bold text-white text-xs">Layering & Mixing</div>
+              <div class="text-[11px] text-slate-300 mt-1">Peeling chains, Tornado Cash, cross-chain bridges, Monero (XMR).</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-2 bg-cyber-950 p-1.5 rounded border border-cyber-border/60">
+                Goal: Break graph-clustering heuristics.
+              </div>
+            </div>
+
+            <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-border hover:border-neon-red/50 transition">
+              <div class="flex justify-between items-center text-xs font-mono text-neon-red mb-1">
+                <span>STAGE 4</span>
+                <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="font-bold text-white text-xs">Payoffs & Ransom</div>
+              <div class="text-[11px] text-slate-300 mt-1">Hostage diplomacy, maritime extortion, bribes, sanctions kickbacks.</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-2 bg-cyber-950 p-1.5 rounded border border-cyber-border/60">
+                Vehicles: Cash couriers, gold, invoice fraud.
+              </div>
+            </div>
+
+            <div class="bg-cyber-900 p-3 rounded-lg border border-cyber-border hover:border-purple-400/50 transition">
+              <div class="flex justify-between items-center text-xs font-mono text-purple-400 mb-1">
+                <span>STAGE 5</span>
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="font-bold text-white text-xs">Re-Investment</div>
+              <div class="text-[11px] text-slate-300 mt-1">Laundered crypto pays for charter fees, flags, bunker fuel, crewing.</div>
+              <div class="text-[10px] font-mono text-slate-400 mt-2 bg-cyber-950 p-1.5 rounded border border-cyber-border/60">
+                Result: Self-financing, closed-loop evasion.
+              </div>
+            </div>
+          </div>
+
+          <!-- SANKEY DIAGRAM CANVAS & CONTAINER -->
+          <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border shadow-xl">
+            <div class="flex flex-wrap items-center justify-between pb-3 mb-2 border-b border-cyber-border gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="network" class="w-4 h-4 text-neon-cyan"></i>
+                  Interactive Capital Flow Graph (Sanctioned Shells to Dark Logistics)
+                </h3>
+                <span class="text-xs text-slate-400">Values calibrated to multi-year forensic intelligence totals in USD billions</span>
+              </div>
+              <div class="flex items-center space-x-3 text-xs font-mono text-slate-400">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-neon-red"></span> Sources</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-neon-amber"></span> Settlement</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-neon-cyan"></span> Obfuscation</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-neon-emerald"></span> Operations</span>
+              </div>
+            </div>
+
+            <!-- SVG Container for D3 Sankey -->
+            <div id="sankeyWrapper" class="w-full overflow-x-auto min-h-[460px] flex items-center justify-center">
+              <svg id="sankeySvg" class="w-full h-[460px]"></svg>
+            </div>
+          </div>
+
+          <!-- SPOTLIGHT CASE STUDIES (RONIN / GARANTEX / BYBIT) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Case Study 1: Lazarus Group -->
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono text-neon-red px-2 py-0.5 rounded bg-red-950 border border-red-500/30">
+                  CASE STUDY 1: DPRK LAZARUS GROUP
+                </span>
+                <span class="text-xs font-mono text-slate-400">$2.0B - $3.0B+ Stolen</span>
+              </div>
+              <h4 class="font-bold text-white text-sm">State-Sponsored Heists as Weapons Program Sovereign Revenue</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Reconnaissance General Bureau (RGB) units (APT38, TraderTraitor) execute mega-heists: Ronin Network ($625M), Harmony ($100M), DMM Bitcoin ($308M), and Bybit ($1.5B). Stolen funds are peeled in 3,000 ETH tranches through Tornado Cash and cross-chain bridges into Asian OTC brokers, directly financing Pyongyang's ballistic missile procurement networks and dhow/small tanker shipments.
+              </p>
+              <div class="p-2.5 rounded bg-cyber-950 border border-cyber-border text-[11px] font-mono space-y-1 text-slate-400">
+                <div>• Primary OFAC Address: <span class="text-neon-cyan">0x098B716B8Aaf21512996dC57EB0615e2383E2f96</span></div>
+                <div>• Mixer Evolution: Blender.io (seized 2022) &rarr; Sinbad.io (seized 2023) &rarr; Cross-chain DEX hopping</div>
+              </div>
+            </div>
+
+            <!-- Case Study 2: Russia's Shadow Infrastructure -->
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono text-neon-amber px-2 py-0.5 rounded bg-amber-950 border border-amber-500/30">
+                  CASE STUDY 2: RUSSIA POST-2022 INFRASTRUCTURE
+                </span>
+                <span class="text-xs font-mono text-slate-400">$20B+ Investigated Tranche</span>
+              </div>
+              <h4 class="font-bold text-white text-sm">Garantex / Grinex & Ruble Stablecoins (A7A5) Replacing SWIFT</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Following SWIFT expulsion, Moscow-based exchange Garantex processed over $100M in ransomware and over $20B in USDT on TRON. Following US Secret Service and German police domain seizure ($26M frozen), Garantex reconstituted within weeks as Grinex. Concurrently, the ruble-pegged stablecoin A7A5 processed ~$1B per day by July 2025 to settle Urals oil sales and Baltic dark fleet charter fees.
+              </p>
+              <div class="p-2.5 rounded bg-cyber-950 border border-cyber-border text-[11px] font-mono space-y-1 text-slate-400">
+                <div>• Centralized Tether Action: $27M frozen post-EU 16th package; $12.3M frozen via T3 FCU</div>
+                <div>• Legal Evasion: Kyrgyz registration, Moldovan oligarch Ilan Shor ties, Telegram OTC corridors</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: METRICS & TIME-SERIES ANALYTICS (CHART.JS) -->
+        <div id="view-analytics" class="tab-view hidden w-full h-full overflow-y-auto p-4 md:p-6 space-y-6">
+          <div class="border-b border-cyber-border pb-3">
+            <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-5 h-5 text-neon-cyan"></i>
+              Quantitative Geoeconomic Analytics & Time-Series Convergence
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Historical tracking (2022 - 2026) demonstrating the direct correlation between G7 price caps, exchange designations, and the industrialization of dark fleet AIS spoofing.
+            </p>
+          </div>
+
+          <!-- PRIMARY TIME-SERIES CHART -->
+          <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border shadow-xl">
+            <div class="flex flex-wrap items-center justify-between pb-3 mb-2 border-b border-cyber-border gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="trending-up" class="w-4 h-4 text-neon-red"></i>
+                  The Convergence Spike: Dark Fleet AIS Gaps vs. Illicit Crypto Settlement (2022 - 2026)
+                </h3>
+                <span class="text-xs text-slate-400">Dual-axis index measuring verified dark-voyage days vs. monthly USDT/crypto volume</span>
+              </div>
+              <div class="flex items-center space-x-2 text-xs font-mono">
+                <span class="px-2 py-0.5 rounded bg-cyber-950 text-neon-cyan border border-cyber-border">R² = 0.912 Correlation</span>
+              </div>
+            </div>
+            <div class="h-80 w-full">
+              <canvas id="timeSeriesChart"></canvas>
+            </div>
+          </div>
+
+          <!-- THREE-COLUMN CHARTS: ASSET SHARE, FLAGS OF CONVENIENCE, TRAVEL RULE -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Chart 2: Asset Diversification -->
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border flex flex-col">
+              <h3 class="text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5 font-mono uppercase">
+                <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-neon-emerald"></i> Asset Portfolio Share
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-2">Dominance of USDT on TRON for velocity and grey settlement</p>
+              <div class="flex-1 min-h-[220px] relative flex items-center justify-center">
+                <canvas id="assetChart"></canvas>
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-2 pt-2 border-t border-cyber-border/60">
+                USDT-TRON: 58% • BTC: 24% • Monero XMR: 11% • A7A5: 7%
+              </div>
+            </div>
+
+            <!-- Chart 3: Flags of Convenience -->
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border flex flex-col">
+              <h3 class="text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5 font-mono uppercase">
+                <i data-lucide="flag" class="w-3.5 h-3.5 text-neon-amber"></i> Flag-State Registries
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-2">Jurisdictional migration under diplomatic pressure</p>
+              <div class="flex-1 min-h-[220px] relative flex items-center justify-center">
+                <canvas id="flagsChart"></canvas>
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-2 pt-2 border-t border-cyber-border/60">
+                Gabon, Cameroon, Palau absorbing elderly displaced tonnage
+              </div>
+            </div>
+
+            <!-- Chart 4: FATF Travel Rule Deficit -->
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border flex flex-col">
+              <h3 class="text-xs font-bold text-slate-200 mb-1 flex items-center gap-1.5 font-mono uppercase">
+                <i data-lucide="shield-x" class="w-3.5 h-3.5 text-neon-red"></i> FATF Travel Rule Gap
+              </h3>
+              <p class="text-[11px] text-slate-400 mb-2">98 Surveyed Global Jurisdictions (Module 5)</p>
+              <div class="flex-1 min-h-[220px] relative flex items-center justify-center">
+                <canvas id="travelRuleChart"></canvas>
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-2 pt-2 border-t border-cyber-border/60">
+                Only 11 jurisdictions enforcing; creates massive OTC corridors
+              </div>
+            </div>
+
+          </div>
+
+          <!-- MACRO GEOECONOMIC FINDINGS SUMMARY -->
+          <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border">
+            <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <i data-lucide="file-text" class="w-4 h-4 text-neon-cyan"></i>
+              Key Forensic Takeaways from the October 2026 Academic & Policy Report
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs text-slate-300">
+              <div class="p-2.5 rounded bg-cyber-950 border border-cyber-border">
+                <span class="text-neon-cyan font-bold block mb-1">Key Finding 1</span>
+                Crypto and dark fleets are one system: the same corporate shells that mask oil cargoes also control exchange OTC sub-accounts.
+              </div>
+              <div class="p-2.5 rounded bg-cyber-950 border border-cyber-border">
+                <span class="text-neon-red font-bold block mb-1">Key Finding 2</span>
+                Lazarus heists are revenue operations for DPRK WMD/ballistic missile programs, generating over $2-3B cumulatively.
+              </div>
+              <div class="p-2.5 rounded bg-cyber-950 border border-cyber-border">
+                <span class="text-neon-amber font-bold block mb-1">Key Finding 3</span>
+                Exchange designations without physical arrest result in instant displacement: Garantex became Grinex within weeks.
+              </div>
+              <div class="p-2.5 rounded bg-cyber-950 border border-cyber-border">
+                <span class="text-neon-emerald font-bold block mb-1">Key Finding 4</span>
+                AIS manipulation is industrialized: 19 vessels simultaneously cloned MMSIs Nov 2024–Apr 2025 to defeat port checks.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: VESSEL & WALLET REGISTRY TABLE -->
+        <div id="view-dossier" class="tab-view hidden w-full h-full overflow-y-auto p-4 md:p-6 space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-cyber-border pb-3">
+            <div>
+              <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                <i data-lucide="database" class="w-5 h-5 text-neon-cyan"></i>
+                Tracked Vessel, Corporate Shell & Sanctioned Crypto Registry
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">
+                Full intelligence dossiers from OFAC advisories, Danish court records, EU 16th package, and on-chain blockchain forensic clusters.
+              </p>
+            </div>
+            <!-- Search bar -->
+            <div class="relative w-full md:w-72">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+              <input type="text" id="tableSearch" placeholder="Search vessel, IMO, wallet, flag..." class="w-full bg-cyber-900 border border-cyber-border rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-neon-cyan font-mono">
+            </div>
+          </div>
+
+          <!-- REGISTRY TABLE -->
+          <div class="bg-cyber-900 rounded-xl border border-cyber-border overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300 font-mono">
+                <thead class="bg-cyber-950 text-slate-400 border-b border-cyber-border text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Vessel / IMO</th>
+                    <th class="py-3 px-3">Flag State</th>
+                    <th class="py-3 px-3">State Actor</th>
+                    <th class="py-3 px-3">Threat Tier</th>
+                    <th class="py-3 px-3">Deception Method</th>
+                    <th class="py-3 px-3">Commodity</th>
+                    <th class="py-3 px-3">Linked Wallet / Rail</th>
+                    <th class="py-3 px-3 text-right">Volume</th>
+                    <th class="py-3 px-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="vesselTableBody" class="divide-y divide-cyber-border">
+                  <!-- Populated via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: OFFICIAL COUNTER-FRAMEWORKS & POLICY -->
+        <div id="view-policy" class="tab-view hidden w-full h-full overflow-y-auto p-4 md:p-6 space-y-6">
+          <div class="border-b border-cyber-border pb-3">
+            <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-5 h-5 text-neon-emerald"></i>
+              Module 5: Multi-Layered Counter-Framework & Interactive Policy Simulator
+            </h2>
+            <p class="text-xs text-slate-400 mt-1 max-w-4xl">
+              Evaluation of existing regulatory architecture (UNCLOS, FATF Travel Rule, OFAC Advisories, G7 Price Cap) and the blueprint for layered technological and geopolitical interdiction.
+            </p>
+          </div>
+
+          <!-- INTERACTIVE POLICY INTERVENTION SIMULATOR -->
+          <div class="bg-cyber-900 p-5 rounded-xl border border-cyan-500/30 shadow-xl">
+            <div class="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-cyber-border gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="sliders" class="w-4 h-4 text-neon-cyan"></i>
+                  Enforcement Impact Simulator: Multi-Chokepoint Disruption
+                </h3>
+                <span class="text-xs text-slate-400">Toggle defensive and regulatory interventions to project estimated illicit disruption</span>
+              </div>
+              <span class="text-xs font-mono text-neon-cyan px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800">
+                PROJECTION ENGINE v2.0
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <!-- Intervention 1 -->
+              <div class="bg-cyber-950 p-3 rounded-lg border border-cyber-border space-y-2">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <span class="text-xs font-bold text-slate-200">1. Space SAR Persistence</span>
+                  <input type="checkbox" id="simSar" checked class="rounded bg-cyber-900 border-cyber-border text-neon-cyan">
+                </label>
+                <p class="text-[11px] text-slate-400">
+                  Deploy continuous SAR & RF satellite tasking over STS anchorages (Kuantan, Gulf of Finland, Kerch, Aruba). Eliminates AIS-dark invisibility.
+                </p>
+                <div class="text-[10px] font-mono text-neon-cyan">+38% Dark Fleet Interdiction</div>
+              </div>
+
+              <!-- Intervention 2 -->
+              <div class="bg-cyber-950 p-3 rounded-lg border border-cyber-border space-y-2">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <span class="text-xs font-bold text-slate-200">2. Universal Travel Rule</span>
+                  <input type="checkbox" id="simTravelRule" class="rounded bg-cyber-900 border-cyber-border text-neon-emerald">
+                </label>
+                <p class="text-[11px] text-slate-400">
+                  FATF blacklisting of non-compliant OTC corridors (UAE, Central Asia, SE Asia). Closes nested sub-account liquidity off-ramps.
+                </p>
+                <div class="text-[10px] font-mono text-neon-emerald">-55% USDT Grey Settlement</div>
+              </div>
+
+              <!-- Intervention 3 -->
+              <div class="bg-cyber-950 p-3 rounded-lg border border-cyber-border space-y-2">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <span class="text-xs font-bold text-slate-200">3. Flag-State Port Bar</span>
+                  <input type="checkbox" id="simFlagBar" class="rounded bg-cyber-900 border-cyber-border text-neon-red">
+                </label>
+                <p class="text-[11px] text-slate-400">
+                  IMO & G7 coalition port denial for high-risk flags of convenience (Gabon, Cameroon, Palau) registering elderly uninsured tonnage.
+                </p>
+                <div class="text-[10px] font-mono text-neon-red">-42% Fleet Re-flagging Capacity</div>
+              </div>
+            </div>
+
+            <!-- SIMULATION PROJECTION RESULT BOX -->
+            <div class="p-3.5 rounded-lg bg-cyber-950 border border-cyber-border flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-neon-cyan">
+                  <i data-lucide="zap" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-slate-400 text-[11px]">PROJECTED VALUE CHAIN ATTRITION:</div>
+                  <div id="simAttritionScore" class="text-lg font-bold text-neon-emerald">64.5% ILLEGAL VOLUME SUPPRESSION</div>
+                </div>
+              </div>
+              <div class="text-right text-[11px] text-slate-400">
+                <div>Estimated Monthly Disruption: <span id="simMonthlySaved" class="text-white font-bold">$1.84 Billion</span></div>
+                <div class="text-slate-500">Requires joint Maritime-Financial Fusion Cell</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- THE 5 CORE STRATEGIC SOLUTIONS (MODULE 5.3) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border space-y-2">
+              <div class="text-xs font-mono text-neon-cyan flex items-center gap-1.5 font-bold uppercase">
+                <i data-lucide="satellite" class="w-4 h-4"></i> Technical Solution 1 & 2: Space SAR & RF Analytics
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Cloud- and darkness-persistent Synthetic Aperture Radar (SAR) paired with wideband maritime-band RF geolocation (Inmarsat / Iridium / VHF). Automated algorithms detect vessels that are electronically silent to AIS and cross-reference with STS anchorage patterns to generate real-time alerts.
+              </p>
+            </div>
+
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border space-y-2">
+              <div class="text-xs font-mono text-neon-emerald flex items-center gap-1.5 font-bold uppercase">
+                <i data-lucide="cpu" class="w-4 h-4"></i> Technical Solution 3: AI Blockchain & Maritime Fusion
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Standardized API pipelines linking blockchain forensic intelligence directly to naval/coast guard maritime systems. Merges vessel identifiers (IMO/MMSI) with wallet clusters and corporate beneficial ownership (UBO) registers to expose front companies before cargo reaches port.
+              </p>
+            </div>
+
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border space-y-2">
+              <div class="text-xs font-mono text-neon-amber flex items-center gap-1.5 font-bold uppercase">
+                <i data-lucide="anchor" class="w-4 h-4"></i> Policy Solution 1: Flag-State Due Diligence
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                A G7/EU/IMO mechanism conditioning access to G7 insurance, bunkering, and port facilities on verifiable flag-state regulatory oversight. Imposes escalating diplomatic and financial penalties on registries that monetize non-enforcement (e.g., Gabon, Cameroon, Eswatini).
+              </p>
+            </div>
+
+            <div class="bg-cyber-900 p-4 rounded-xl border border-cyber-border space-y-2">
+              <div class="text-xs font-mono text-neon-red flex items-center gap-1.5 font-bold uppercase">
+                <i data-lucide="lock" class="w-4 h-4"></i> Policy Solution 2: Centralized Chokepoints Concentration
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Formalizing regulatory obligations on centralized stablecoin issuers (such as Tether) to systematically freeze illicit smart-contract balances upon verified maritime alert. Enforcing upstream-platform liability for nested exchange sub-accounts.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- DOSSIER DETAIL MODAL / DRAWER -->
+    <div id="dossierModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-cyber-900 border border-cyber-border rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 font-mono text-xs space-y-4">
+        <div class="flex items-start justify-between border-b border-cyber-border pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="modalRiskBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-neon-red border border-red-500/40">CRITICAL</span>
+              <span id="modalTheatreBadge" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300">SOUTH CHINA SEA</span>
+            </div>
+            <h3 id="modalVesselTitle" class="text-lg font-bold text-white font-sans mt-1">CORONA FUN (IMO 9276573)</h3>
+          </div>
+          <button onclick="closeDossierModal()" class="text-slate-400 hover:text-white p-1 rounded-lg bg-cyber-950 border border-cyber-border">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 bg-cyber-950 p-3 rounded-lg border border-cyber-border">
+          <div><span class="text-slate-400">Current Flag:</span> <span id="modalFlag" class="text-white font-semibold">Cameroon</span></div>
+          <div><span class="text-slate-400">Vessel Age:</span> <span id="modalAge" class="text-white">24 Years (Elderly Tonnage)</span></div>
+          <div><span class="text-slate-400">Jurisdiction:</span> <span id="modalJurisdiction" class="text-white">Iran</span></div>
+          <div><span class="text-slate-400">Commodity:</span> <span id="modalCommodity" class="text-white">Crude Oil</span></div>
+          <div><span class="text-slate-400">Deception Method:</span> <span id="modalDeception" class="text-neon-amber">Multi-leg STS & AIS Spoofing</span></div>
+          <div><span class="text-slate-400">Estimated Volume:</span> <span id="modalVolume" class="text-neon-emerald font-bold">$84,200,000</span></div>
+        </div>
+
+        <div class="space-y-1">
+          <div class="text-slate-400 font-bold uppercase text-[10px]">ROUTE & VOYAGE PROFILE:</div>
+          <p id="modalRoute" class="text-slate-200 bg-cyber-950 p-2.5 rounded border border-cyber-border">
+            Bandar Abbas &rarr; Kuantan STS Anchorage &rarr; Dongying Teapot Refinery
+          </p>
+        </div>
+
+        <div class="space-y-1">
+          <div class="text-slate-400 font-bold uppercase text-[10px]">ASSOCIATED CRYPTO WALLET & LAUNDERING RAIL:</div>
+          <div id="modalWallet" class="text-neon-cyan bg-cyber-950 p-2.5 rounded border border-cyber-border break-all">
+            TJ8b3941kLmc931Z (TRON USDT Grey Settlement)
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <div class="text-slate-400 font-bold uppercase text-[10px]">OPERATIONAL INTELLIGENCE & CITATION:</div>
+          <p id="modalIntel" class="text-slate-300 bg-cyber-950 p-2.5 rounded border border-cyber-border leading-relaxed">
+            Identified in OFAC March 2025 advisory executing 4-stage STS off Kuantan with falsified cargo certificates.
+          </p>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2 border-t border-cyber-border">
+          <button onclick="closeDossierModal()" class="px-4 py-2 bg-cyber-850 hover:bg-cyber-800 text-slate-300 rounded font-sans font-medium transition">
+            Close
+          </button>
+          <button id="modalMapLocateBtn" class="px-4 py-2 bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-neon-cyan rounded font-sans font-medium transition flex items-center gap-1.5">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Locate on Map
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMBEDDED REALISTIC GEOINT & FORENSIC DATASET SCRIPT -->
+    <script>
+      /**
+       * SHADOW-NET DATABASE: Grounded in October 2026 Academic and Policy Report:
+       * "The Geoeconomics of Shadow Networks: Cryptocurrencies, Dark Fleets, and Sanctions Evasion"
+       */
+      const GEOINT_DATA = {
+        theatres: {
+          global: { name: "Global Shadow Network", center: [25.0, 45.0], zoom: 3 },
+          south_china_sea: { name: "South China Sea & Malacca Corridor", center: [4.5, 104.5], zoom: 6 },
+          baltic: { name: "Baltic Sea & Gulf of Finland", center: [59.5, 26.0], zoom: 6 },
+          black_sea: { name: "Black Sea & Kerch Strait", center: [44.8, 36.0], zoom: 6 },
+          caribbean: { name: "Caribbean & Venezuelan Basin", center: [12.5, -69.0], zoom: 6 },
+          red_sea: { name: "Red Sea & Bab-el-Mandeb Strait", center: [13.2, 43.5], zoom: 6 }
+        },
+
+        vessels: [
+          {
+            id: "v1",
+            name: "CORONA FUN",
+            imo: "9276573",
+            mmsi: "636019842",
+            flag: "Cameroon",
+            builtYear: 2002,
+            age: 24,
+            threatLevel: "Critical",
+            jurisdiction: "Iran",
+            commodity: "Crude Oil",
+            theatre: "south_china_sea",
+            realCoords: [3.85, 103.95], // Off Kuantan
+            spoofedCoords: [23.6, 58.6], // Spoofed as "Oman"
+            routePath: [
+              [27.15, 56.28], // Bandar Abbas
+              [22.5, 62.0],
+              [10.0, 75.0],
+              [5.8, 97.5],
+              [1.25, 103.8],
+              [3.85, 103.95], // Kuantan STS
+              [15.5, 114.2],
+              [37.5, 120.0]  // Shandong Teapot
+            ],
+            deceptionMethod: "Multi-leg STS & AIS Location Spoofing (falsely broadcast Oman)",
+            wallet: "TJ8b3941kLmc931Z (TRON USDT Settlement)",
+            walletAddress: "TJ8b3941kLmc931Z89A8b991z0",
+            volumeUSD: 84200000,
+            volumeFormatted: "$84.2M",
+            rail: "USDT",
+            citation: "OFAC March 2025 Advisory designated entity executing 4-stage STS off Kuantan with falsified cargo certificates."
+          },
+          {
+            id: "v2",
+            name: "MS ENOLA",
+            imo: "9251951",
+            mmsi: "629012489",
+            flag: "Gabon",
+            builtYear: 2003,
+            age: 23,
+            threatLevel: "Critical",
+            jurisdiction: "Iran",
+            commodity: "Refined Fuel / Condensate",
+            theatre: "south_china_sea",
+            realCoords: [1.45, 104.45], // Singapore Strait approach
+            spoofedCoords: [5.2, 101.8], // Inland Malay broadcast
+            routePath: [
+              [29.23, 50.32], // Kharg Island
+              [24.0, 59.0],
+              [6.0, 95.0],
+              [1.45, 104.45], // Singapore Strait approach
+              [22.0, 115.0],
+              [29.9, 122.2]  // Ningbo
+            ],
+            deceptionMethod: "MMSI Identity Cloning & Draft Reading Falsification",
+            wallet: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t (Garantex Associated)",
+            walletAddress: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+            volumeUSD: 62500000,
+            volumeFormatted: "$62.5M",
+            rail: "USDT",
+            citation: "OFAC Dec 2024 Action: Simulated laden draft condition to match false cargo narrative of non-Iranian light crude."
+          },
+          {
+            id: "v3",
+            name: "YAZ",
+            imo: "9735323",
+            mmsi: "667001423",
+            flag: "Eswatini",
+            builtYear: 2005,
+            age: 21,
+            threatLevel: "Critical",
+            jurisdiction: "Russia",
+            commodity: "Refined Fuel / Condensate",
+            theatre: "baltic",
+            realCoords: [59.85, 26.8], // Gulf of Finland dark zone
+            spoofedCoords: [57.0, 20.0], // Mid-Baltic false ping
+            routePath: [
+              [59.68, 28.38], // Ust-Luga
+              [59.85, 26.8],  // Gulf of Finland AIS outage
+              [57.7, 10.6],   // Skagen / Danish Straits
+              [36.0, -5.3],   // Gibraltar
+              [35.15, 35.9]   // Banias (Syria)
+            ],
+            deceptionMethod: "6-Day AIS Outage & Document Falsification",
+            wallet: "0x91F84c2B1a980Ac71F360B9 (Nested OTC Broker)",
+            walletAddress: "0x91F84c2B1a980Ac71F360B9e7D1e7f339",
+            volumeUSD: 114000000,
+            volumeFormatted: "$114.0M",
+            rail: "ETH_TORNADO",
+            citation: "Danish Court Conviction: Ran 33 sanctions-busting voyages to Banias, Syria with documented 6-day AIS outages; fused AIS gap and Danish bunkering records in court evidence."
+          },
+          {
+            id: "v4",
+            name: "NEVA SPIRIT",
+            imo: "9184429",
+            mmsi: "629088192",
+            flag: "Gabon",
+            builtYear: 2001,
+            age: 25,
+            threatLevel: "High Risk",
+            jurisdiction: "Russia",
+            commodity: "Crude Oil",
+            theatre: "baltic",
+            realCoords: [60.35, 28.6], // Primorsk approaches
+            spoofedCoords: [58.8, 22.0],
+            routePath: [
+              [60.35, 28.6], // Primorsk
+              [59.7, 24.5],
+              [56.0, 12.0],  // Danish Straits
+              [22.4, 69.8]   // Vadinar (India)
+            ],
+            deceptionMethod: "AIS Blackout at Loading & Price-Cap Violation ($78/bbl vs $60 cap)",
+            wallet: "A7A5-RUB-KYRGYZ-0481 (Promsvyazbank A7A5 Corridor)",
+            walletAddress: "A7A5-RUB-KYRGYZ-0481",
+            volumeUSD: 98400000,
+            volumeFormatted: "$98.4M",
+            rail: "A7A5",
+            citation: "EU 16th Package Entity Listing (Feb 2025): Settled cargo spread using A7A5 ruble-pegged stablecoin bypassing SWIFT."
+          },
+          {
+            id: "v5",
+            name: "VOLGA WARRIOR",
+            imo: "9218909",
+            mmsi: "273449102",
+            flag: "Russia",
+            builtYear: 2000,
+            age: 26,
+            threatLevel: "High Risk",
+            jurisdiction: "Russia",
+            commodity: "Grain & Dual-Use",
+            theatre: "black_sea",
+            realCoords: [45.3, 36.5], // Kerch Strait
+            spoofedCoords: [44.6, 33.5], // Broadcast inside Sevastopol harbor
+            routePath: [
+              [46.7, 36.8],  // Berdyansk (Occupied)
+              [45.3, 36.5],  // Kerch Strait
+              [43.0, 34.0],
+              [36.8, 34.6]   // Mersin (Turkey)
+            ],
+            deceptionMethod: "AIS Position Forgery & Wide-area GNSS Spoofing",
+            wallet: "TRx9A882P192bZ1m0 (USDT TRON OTC Desk)",
+            walletAddress: "TRx9A882P192bZ1m0A",
+            volumeUSD: 41000000,
+            volumeFormatted: "$41.0M",
+            rail: "USDT",
+            citation: "US State Dept Advisory: Broadcast AIS in Russian ports while loading stolen Ukrainian grain in occupied Berdyansk."
+          },
+          {
+            id: "v6",
+            name: "ARCTIC SHADOW",
+            imo: "9235122",
+            mmsi: "511003491",
+            flag: "Palau",
+            builtYear: 2004,
+            age: 22,
+            threatLevel: "Suspicious",
+            jurisdiction: "Russia",
+            commodity: "Crude Oil",
+            theatre: "black_sea",
+            realCoords: [44.7, 37.8], // Novorossiysk offshore
+            spoofedCoords: [42.0, 31.0],
+            routePath: [
+              [44.7, 37.8], // Novorossiysk
+              [45.5, 36.8], // Azov Blending Zone
+              [41.2, 29.1], // Bosphorus
+              [27.8, 34.3]  // Red Sea
+            ],
+            deceptionMethod: "Dual-leg STS Blending (Relabeling Urals as Kazakh CPC blend)",
+            wallet: "Grinex-OTC-Moscow-77 (Reconstituted Garantex)",
+            walletAddress: "Grinex-OTC-Moscow-77",
+            volumeUSD: 55200000,
+            volumeFormatted: "$55.2M",
+            rail: "USDT",
+            citation: "Under OFAC Investigation: Single-ship shell in Marshall Islands with UAE nominee director, transacting via Grinex."
+          },
+          {
+            id: "v7",
+            name: "ORINOCO STAR",
+            imo: "9226788",
+            mmsi: "354091882",
+            flag: "Panama",
+            builtYear: 2001,
+            age: 25,
+            threatLevel: "High Risk",
+            jurisdiction: "Venezuela",
+            commodity: "Crude Oil",
+            theatre: "caribbean",
+            realCoords: [12.45, -70.1], // Off Aruba STS Zone
+            spoofedCoords: [11.2, -64.0],
+            routePath: [
+              [10.15, -64.7], // Jose Terminal
+              [12.45, -70.1], // Aruba STS Zone
+              [9.5, -79.9],   // Panama Canal approaches
+              [35.4, 119.5]   // Rizhao (China)
+            ],
+            deceptionMethod: "AIS Gaps during Loading & Falsified Cert ('Malaysian Blend')",
+            wallet: "TRon-PDVSA-OTC-1 (Caracas-Tehran Rail)",
+            walletAddress: "TRon-PDVSA-OTC-1889",
+            volumeUSD: 128000000,
+            volumeFormatted: "$128.0M",
+            rail: "USDT",
+            citation: "OFAC E.O. 13850 Listed: Trilateral VE-CU-IR network. Swapped Venezuelan Merey heavy for Iranian condensate."
+          },
+          {
+            id: "v8",
+            name: "CARIBBEAN GLORY",
+            imo: "9193301",
+            mmsi: "629099120",
+            flag: "Cameroon",
+            builtYear: 1999,
+            age: 27,
+            threatLevel: "Suspicious",
+            jurisdiction: "Venezuela",
+            commodity: "Refined Fuel / Condensate",
+            theatre: "caribbean",
+            realCoords: [12.1, -68.9], // Curaçao STS
+            spoofedCoords: [14.0, -75.0],
+            routePath: [
+              [11.75, -70.2], // Amuay
+              [12.1, -68.9],  // Curaçao STS
+              [23.0, -82.7]   // Mariel (Cuba)
+            ],
+            deceptionMethod: "AIS Dark Transit to Cuvenpetrol Consignee",
+            wallet: "0x44B7a1199c2F (Nested Exchange OTC)",
+            walletAddress: "0x44B7a1199c2Fe7180D",
+            volumeUSD: 38000000,
+            volumeFormatted: "$38.0M",
+            rail: "ETH_TORNADO",
+            citation: "OFAC Warning List: Leased tonnage by Cuban state oil company Cuvenpetrol with hostage-pricing crew contracts."
+          },
+          {
+            id: "v9",
+            name: "AL-MANDAB GHOST",
+            imo: "9168924",
+            mmsi: "667098112",
+            flag: "Eswatini",
+            builtYear: 1998,
+            age: 28,
+            threatLevel: "Critical",
+            jurisdiction: "Iran",
+            commodity: "Weapons & Missile Parts",
+            theatre: "red_sea",
+            realCoords: [12.7, 43.3], // Bab-el-Mandeb Strait
+            spoofedCoords: [15.0, 52.0], // Spoofed far east in Gulf of Oman
+            routePath: [
+              [27.1, 56.3], // Bandar Abbas
+              [15.0, 52.0], // False broadcast
+              [12.7, 43.3], // Actual Bab-el-Mandeb
+              [14.8, 42.9]  // Hodeidah (Yemen)
+            ],
+            deceptionMethod: "Complete AIS Blackout & Dual-use Radar Cloaking",
+            wallet: "0x098B716B8Aaf21512996dC57EB0615e2383E2f96 (Lazarus Link)",
+            walletAddress: "0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+            volumeUSD: 74500000,
+            volumeFormatted: "$74.5M",
+            rail: "XMR",
+            citation: "UN Panel of Experts: Small tanker/dhow mothership transferring dual-use rocket guidance components and UAV fuel to Houthi militia."
+          },
+          {
+            id: "v10",
+            name: "RED HORIZON",
+            imo: "9248819",
+            mmsi: "629048119",
+            flag: "Gabon",
+            builtYear: 2003,
+            age: 23,
+            threatLevel: "Suspicious",
+            jurisdiction: "Iran",
+            commodity: "Refined Fuel / Condensate",
+            theatre: "red_sea",
+            realCoords: [13.5, 42.8],
+            spoofedCoords: [11.5, 48.0],
+            routePath: [
+              [27.5, 52.6], // Assaluyeh
+              [13.5, 42.8], // Bab-el-Mandeb
+              [10.4, 45.0]  // Berbera (Somaliland)
+            ],
+            deceptionMethod: "MMSI Spoofing & 'Armed Escort Aboard' False AIS Broadcast",
+            wallet: "TE8n55pZ9108aL (TRON USDT)",
+            walletAddress: "TE8n55pZ9108aLk8",
+            volumeUSD: 46000000,
+            volumeFormatted: "$46.0M",
+            rail: "USDT",
+            citation: "OFAC Secondary Sanctions Target: Broadcasts anti-piracy deterrence while funneling clandestine fuel oil to Horn of Africa brokers."
+          },
+          {
+            id: "v11",
+            name: "CHONGSUN 2",
+            imo: "8916293",
+            mmsi: "445102930",
+            flag: "North Korea",
+            builtYear: 1996,
+            age: 30,
+            threatLevel: "Critical",
+            jurisdiction: "North Korea",
+            commodity: "Weapons & Missile Parts",
+            theatre: "south_china_sea",
+            realCoords: [38.2, 124.8], // Yellow Sea
+            spoofedCoords: [36.0, 128.0],
+            routePath: [
+              [38.7, 125.4], // Nampo
+              [38.2, 124.8], // Yellow Sea STS
+              [43.1, 131.9]  // Vladivostok
+            ],
+            deceptionMethod: "Flag-Hopping (Togo to DPRK), Total AIS Erasure",
+            wallet: "0x098B716B8Aaf21512996dC57EB0615e2383E2f96 (Ronin Exploit Pool)",
+            walletAddress: "0x098B716B8Aaf21512996dC57EB0615e2383E2f96",
+            volumeUSD: 185000000,
+            volumeFormatted: "$185.0M",
+            rail: "ETH_TORNADO",
+            citation: "UN Panel of Experts / FBI: Ballistic missile precursor procurement vessel funded directly via Lazarus Group Ronin Network heists."
+          },
+          {
+            id: "v12",
+            name: "GOLDEN TIDE",
+            imo: "9271188",
+            mmsi: "511088412",
+            flag: "Palau",
+            builtYear: 2004,
+            age: 22,
+            threatLevel: "High Risk",
+            jurisdiction: "North Korea",
+            commodity: "Crude Oil",
+            theatre: "south_china_sea",
+            realCoords: [30.1, 122.8], // Zhoushan offshore
+            spoofedCoords: [28.0, 125.0],
+            routePath: [
+              [30.0, 122.0], // Zhoushan
+              [30.1, 122.8], // East China Sea STS
+              [38.7, 125.4]  // Nampo (DPRK)
+            ],
+            deceptionMethod: "Nighttime STS Transfers with Dark Russian Tankers",
+            wallet: "bc1qa89f42sinbad (Sinbad.io Laundering Cluster)",
+            walletAddress: "bc1qa89f42sinbad889",
+            volumeUSD: 68000000,
+            volumeFormatted: "$68.0M",
+            rail: "BTC",
+            citation: "OFAC Designated (TraderTraitor network): Exceeds annual 500,000-barrel UN petroleum cap via Asian OTC crypto desks."
+          }
+        ],
+
+        // STS Anchorages mentioned in text
+        stsZones: [
+          { name: "Kuantan / Gebeng STS Anchorage", coords: [3.9, 103.8], threat: "High Risk", desc: "Open-water STS anchorages off Malaysia's east coast. Canonical hub for Iranian oil multi-leg blending." },
+          { name: "Gulf of Finland STS Zone", coords: [59.8, 26.5], threat: "High Risk", desc: "Russian crude STS zone with documented 6-day AIS outages prior to Danish Straits transits." },
+          { name: "Kerch Strait & Azov Blending Zone", coords: [45.2, 36.6], threat: "High Risk", desc: "Chokepoint for stolen Ukrainian grain and Russian crude blending off Turkish waters." },
+          { name: "Aruba & Curaçao STS Basin", coords: [12.3, -69.8], threat: "High Risk", desc: "Trilateral VE-CU-IR exchange hub. Relabels Merey crude as Malaysian blend." },
+          { name: "Bab-el-Mandeb Chokepoint", coords: [12.6, 43.3], threat: "Critical", desc: "Asymmetric warfare zone where AIS deception is dual-use against kinetic strikes." }
+        ],
+
+        // Ports mentioned
+        ports: [
+          { name: "Primorsk Terminal", coords: [60.36, 28.62], type: "Russian Baltic Loading" },
+          { name: "Ust-Luga Terminal", coords: [59.68, 28.38], type: "Russian Baltic Loading" },
+          { name: "Novorossiysk Terminal", coords: [44.72, 37.78], type: "Russian Black Sea Loading" },
+          { name: "Bandar Abbas", coords: [27.18, 56.27], type: "Iranian State Terminal" },
+          { name: "Jose Terminal", coords: [10.15, -64.71], type: "Venezuelan PDVSA Terminal" },
+          { name: "Nampo", coords: [38.73, 125.40], type: "DPRK Off-Ramp Port" },
+          { name: "Hodeidah", coords: [14.80, 42.95], type: "Yemen Covert Fuel Hub" },
+          { name: "Dongying / Shandong", coords: [37.46, 118.67], type: "Chinese Teapot Refinery Sink" }
+        ],
+
+        // Sankey Flow Data (Module 4 Payoff Loop)
+        sankeyData: {
+          nodes: [
+            // Sources (0-3)
+            { name: "Sanctioned Crude (Urals / Merey)" },
+            { name: "Iranian Condensate / Fuel" },
+            { name: "DPRK State Cyber-Heists ($2-3B)" },
+            { name: "Maritime Extortion / Hostage Yields" },
+            
+            // Intermediaries (4-7)
+            { name: "Single-Ship Shells (Marshall/Panama)" },
+            { name: "Stolen Bridge Funds (Ronin/Bybit)" },
+            { name: "Falsified Origin Brokers" },
+            { name: "Scam Compounds (Mekong/SE Asia)" },
+
+            // Financial Rails (8-11)
+            { name: "Tether (USDT on TRON Network)" },
+            { name: "Garantex / Grinex OTC Desks" },
+            { name: "A7A5 Ruble-Pegged Stablecoin" },
+            { name: "Bitcoin & Peeling Chains" },
+
+            // Layering & Mixing (12-14)
+            { name: "Mixers (Tornado / Sinbad)" },
+            { name: "Cross-Chain DEXs & Chain-Hopping" },
+            { name: "Monero (XMR) Terminal Privacy" },
+
+            // Re-Investment / Off-ramps (15-18)
+            { name: "Dark Fleet Charter & Bunker Fuel" },
+            { name: "Flag Registries (Gabon/Cameroon)" },
+            { name: "Ballistic Missile Procurement" },
+            { name: "Hostage / Diplomatic Payoffs" }
+          ],
+          links: [
+            // Sources -> Intermediaries
+            { source: 0, target: 4, value: 16.5 },
+            { source: 0, target: 6, value: 8.2 },
+            { source: 1, target: 4, value: 11.4 },
+            { source: 1, target: 6, value: 5.8 },
+            { source: 2, target: 5, value: 3.2 },
+            { source: 3, target: 7, value: 1.1 },
+
+            // Intermediaries -> Financial Rails
+            { source: 4, target: 8, value: 18.2 },
+            { source: 4, target: 10, value: 9.7 },
+            { source: 6, target: 9, value: 14.0 },
+            { source: 5, target: 11, value: 1.8 },
+            { source: 5, target: 8, value: 1.4 },
+            { source: 7, target: 8, value: 1.1 },
+
+            // Financial Rails -> Layering
+            { source: 8, target: 13, value: 12.5 },
+            { source: 9, target: 13, value: 8.5 },
+            { source: 10, target: 13, value: 4.2 },
+            { source: 11, target: 12, value: 1.8 },
+            { source: 13, target: 14, value: 5.6 },
+
+            // Layering -> Operational Re-investment
+            { source: 8, target: 15, value: 8.2 },
+            { source: 9, target: 15, value: 5.5 },
+            { source: 10, target: 15, value: 5.5 },
+            { source: 13, target: 16, value: 3.4 },
+            { source: 14, target: 17, value: 2.8 },
+            { source: 14, target: 18, value: 2.8 },
+            { source: 12, target: 17, value: 1.8 }
+          ]
+        }
+      };
+
+      /**
+       * APPLICATION STATE & MAP CONTROLLER
+       */
+      let leafletMap = null;
+      let mapMarkers = [];
+      let mapPolylines = [];
+      let spoofedRings = [];
+      let stsCircles = [];
+      let portMarkers = [];
+      let timeSeriesChartInstance = null;
+      let assetChartInstance = null;
+      let flagsChartInstance = null;
+      let travelRuleChartInstance = null;
+      let currentFilter = { country: "ALL", risk: "ALL", commodity: "ALL", rail: "ALL" };
+
+      // Initialize Application on DOM Ready
+      document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        initMap();
+        initFilters();
+        initTabs();
+        initSankey();
+        initCharts();
+        renderTable();
+        updateKPIs();
+        initSimulator();
+
+        // System time ticker
+        setInterval(() => {
+          const now = new Date();
+          const el = document.getElementById('systemTime');
+          if (el) el.innerText = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+        }, 1000);
+
+        // Reset Filters Button
+        document.getElementById('btnResetFilters')?.addEventListener('click', resetFilters);
+
+        // Simulation SAR button
+        document.getElementById('btnSimulateSpoofing')?.addEventListener('click', () => {
+          simulateSarDetection();
+        });
+
+        // Export JSON Button
+        document.getElementById('btnExportJSON')?.addEventListener('click', exportDataset);
+      });
+
+      /**
+       * LEAFLET MAP INITIALIZATION
+       */
+      function initMap() {
+        // Initialize Map
+        leafletMap = L.map('map', {
+          zoomControl: false,
+          attributionControl: false
+        }).setView([25.0, 45.0], 3);
+
+        // Add Zoom Control to Bottom Right
+        L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
+
+        // CartoDB Dark Matter Tiles (High contrast cyber look)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 18,
+          subdomains: 'abcd'
+        }).addTo(leafletMap);
+
+        // Mousemove coordinate tracker
+        leafletMap.on('mousemove', (e) => {
+          const coords = document.getElementById('mapCursorCoords');
+          if (coords) {
+            coords.innerText = `${e.latlng.lat.toFixed(2)}° N, ${e.latlng.lng.toFixed(2)}° E`;
+          }
+        });
+
+        // Render Map Layers
+        renderMapLayers();
+
+        // Layer check toggles
+        document.getElementById('layerRoutes')?.addEventListener('change', renderMapLayers);
+        document.getElementById('layerSpoofed')?.addEventListener('change', renderMapLayers);
+        document.getElementById('layerSTS')?.addEventListener('change', renderMapLayers);
+        document.getElementById('layerPorts')?.addEventListener('change', renderMapLayers);
+      }
+
+      /**
+       * RENDER MAP LAYERS (VESSELS, SPOOFED GHOSTS, STS ZONES, PORTS)
+       */
+      function renderMapLayers() {
+        if (!leafletMap) return;
+
+        // Clear existing markers & paths
+        mapMarkers.forEach(m => leafletMap.removeLayer(m));
+        mapPolylines.forEach(p => leafletMap.removeLayer(p));
+        spoofedRings.forEach(r => leafletMap.removeLayer(r));
+        stsCircles.forEach(c => leafletMap.removeLayer(c));
+        portMarkers.forEach(p => leafletMap.removeLayer(p));
+
+        mapMarkers = [];
+        mapPolylines = [];
+        spoofedRings = [];
+        stsCircles = [];
+        portMarkers = [];
+
+        const showRoutes = document.getElementById('layerRoutes')?.checked ?? true;
+        const showSpoofed = document.getElementById('layerSpoofed')?.checked ?? true;
+        const showSTS = document.getElementById('layerSTS')?.checked ?? true;
+        const showPorts = document.getElementById('layerPorts')?.checked ?? true;
+
+        // Filter vessels based on active selections
+        const filteredVessels = getFilteredVessels();
+
+        // 1. Plot STS Anchorages
+        if (showSTS) {
+          GEOINT_DATA.stsZones.forEach(zone => {
+            const circle = L.circle(zone.coords, {
+              color: '#ffaa00',
+              fillColor: '#ffaa00',
+              fillOpacity: 0.18,
+              weight: 1.5,
+              dashArray: '4, 4',
+              radius: 45000 // 45km radius
+            }).addTo(leafletMap);
+
+            circle.bindPopup(`
+              <div class="font-mono text-xs">
+                <div class="font-bold text-neon-amber flex items-center gap-1">
+                  <i data-lucide="anchor" class="w-3.5 h-3.5"></i> ${zone.name}
+                </div>
+                <div class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">THREAT LEVEL: ${zone.threat}</div>
+                <p class="text-slate-300 mt-1 text-[11px] leading-tight">${zone.desc}</p>
+              </div>
+            `);
+
+            stsCircles.push(circle);
+          });
+        }
+
+        // 2. Plot Ports
+        if (showPorts) {
+          GEOINT_DATA.ports.forEach(port => {
+            const portIcon = L.divIcon({
+              className: 'custom-port-icon',
+              html: `<div class="w-3 h-3 bg-neon-cyan/70 border border-cyan-300 rounded-sm shadow-sm" title="${port.name}"></div>`,
+              iconSize: [12, 12],
+              iconAnchor: [6, 6]
+            });
+            const pMarker = L.marker(port.coords, { icon: portIcon }).addTo(leafletMap);
+            pMarker.bindPopup(`
+              <div class="font-mono text-xs">
+                <div class="font-bold text-neon-cyan">${port.name}</div>
+                <div class="text-[10px] text-slate-400">${port.type}</div>
+              </div>
+            `);
+            portMarkers.push(pMarker);
+          });
+        }
+
+        // 3. Plot Vessels & Routes
+        filteredVessels.forEach(vessel => {
+          // Determine color based on threat
+          const isCritical = vessel.threatLevel === "Critical";
+          const markerColor = isCritical ? "#ff3366" : (vessel.threatLevel === "High Risk" ? "#ff6600" : "#ffaa00");
+
+          // Polylines
+          if (showRoutes && vessel.routePath && vessel.routePath.length > 1) {
+            const poly = L.polyline(vessel.routePath, {
+              color: isCritical ? '#ff3366' : '#00e5ff',
+              weight: 2,
+              opacity: 0.65,
+              dashArray: isCritical ? '6, 6' : '3, 5'
+            }).addTo(leafletMap);
+
+            poly.on('click', () => selectVessel(vessel.id));
+            mapPolylines.push(poly);
+          }
+
+          // True Position Vessel Marker
+          const vesselIcon = L.divIcon({
+            className: 'custom-vessel-marker',
+            html: `
+              <div class="relative flex items-center justify-center">
+                <span class="absolute w-6 h-6 rounded-full" style="background-color: ${markerColor}; opacity: 0.25; animation: pulse-slow 2s infinite;"></span>
+                <span class="w-3.5 h-3.5 rounded-full border border-white" style="background-color: ${markerColor}; box-shadow: 0 0 10px ${markerColor};"></span>
+              </div>
+            `,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          });
+
+          const vMarker = L.marker(vessel.realCoords, { icon: vesselIcon }).addTo(leafletMap);
+          vMarker.on('click', () => selectVessel(vessel.id));
+
+          // Interactive Popup
+          vMarker.bindPopup(`
+            <div class="font-mono text-xs max-w-[240px]">
+              <div class="flex items-center justify-between border-b border-cyber-border pb-1 mb-1">
+                <span class="font-bold text-white text-sm">${vessel.name}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold" style="color: ${markerColor}; background: ${markerColor}22; border: 1px solid ${markerColor}66;">
+                  ${vessel.threatLevel.toUpperCase()}
+                </span>
+              </div>
+              <div class="text-[11px] text-slate-300 space-y-1">
+                <div><span class="text-slate-400">IMO:</span> ${vessel.imo} | <span class="text-slate-400">Flag:</span> ${vessel.flag}</div>
+                <div><span class="text-slate-400">Cargo:</span> ${vessel.commodity} (${vessel.volumeFormatted})</div>
+                <div><span class="text-slate-400">Deception:</span> <span class="text-neon-amber">${vessel.deceptionMethod}</span></div>
+                <div class="pt-1">
+                  <span class="text-slate-400 text-[10px] block">ASSOCIATED CRYPTO WALLET:</span>
+                  <span class="text-neon-emerald text-[10px] break-all block bg-cyber-950 p-1 rounded border border-cyber-border/80">${vessel.wallet}</span>
+                </div>
+              </div>
+              <button onclick="selectVessel('${vessel.id}'); openDossierModal();" class="mt-2 w-full py-1 rounded bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-neon-cyan text-[10px] text-center font-bold">
+                OPEN FULL DOSSIER
+              </button>
+            </div>
+          `);
+
+          mapMarkers.push(vMarker);
+
+          // Spoofed AIS Ghost Marker (if enabled)
+          if (showSpoofed && vessel.spoofedCoords) {
+            const ghostIcon = L.divIcon({
+              className: 'custom-ghost-marker',
+              html: `
+                <div class="relative flex items-center justify-center">
+                  <span class="w-4 h-4 rounded-full border-2 border-dashed border-purple-400 bg-purple-900/60 flex items-center justify-center text-[8px] text-purple-200 font-bold">
+                    AIS
+                  </span>
+                </div>
+              `,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            });
+
+            const ghostMarker = L.marker(vessel.spoofedCoords, { icon: ghostIcon }).addTo(leafletMap);
+            ghostMarker.bindPopup(`
+              <div class="font-mono text-xs">
+                <div class="font-bold text-purple-300">SPOOFED AIS GHOST SIGNAL</div>
+                <div class="text-[10px] text-slate-400">Origin Vessel: ${vessel.name} (IMO ${vessel.imo})</div>
+                <p class="text-[11px] text-slate-300 mt-1">
+                  Transponder broadcasting false positioning to mask loading at sanctioned terminal.
+                </p>
+              </div>
+            `);
+
+            // Dashed Vector linking False Ping to True Location
+            const offsetLine = L.polyline([vessel.spoofedCoords, vessel.realCoords], {
+              color: '#a855f7',
+              weight: 1.5,
+              opacity: 0.6,
+              dashArray: '4, 6'
+            }).addTo(leafletMap);
+
+            spoofedRings.push(ghostMarker);
+            spoofedRings.push(offsetLine);
+          }
+        });
+
+        // Update footer status
+        const statusEl = document.getElementById('filteredVesselStatus');
+        if (statusEl) {
+          statusEl.innerText = `Displaying ${filteredVessels.length} of ${GEOINT_DATA.vessels.length} Tracked Hulls`;
+        }
+      }
+
+      /**
+       * FILTER LOGIC & HANDLERS
+       */
+      function initFilters() {
+        const countrySelect = document.getElementById('filterCountry');
+        const riskSelect = document.getElementById('filterRisk');
+        const commSelect = document.getElementById('filterCommodity');
+        const railSelect = document.getElementById('filterRail');
+
+        const onFilterChange = () => {
+          currentFilter.country = countrySelect.value;
+          currentFilter.risk = riskSelect.value;
+          currentFilter.commodity = commSelect.value;
+          currentFilter.rail = railSelect.value;
+
+          // Update active filter badge in sidebar
+          const badge = document.getElementById('activeFilterBadge');
+          if (badge) {
+            const activeCount = Object.values(currentFilter).filter(v => v !== 'ALL').length;
+            badge.innerText = activeCount === 0 ? 'ALL RECORDS' : `${activeCount} ACTIVE FILTER${activeCount > 1 ? 'S' : ''}`;
+          }
+
+          // Re-render components
+          renderMapLayers();
+          renderTable();
+          updateKPIs();
+        };
+
+        countrySelect.addEventListener('change', onFilterChange);
+        riskSelect.addEventListener('change', onFilterChange);
+        commSelect.addEventListener('change', onFilterChange);
+        railSelect.addEventListener('change', onFilterChange);
+      }
+
+      function getFilteredVessels() {
+        return GEOINT_DATA.vessels.filter(v => {
+          if (currentFilter.country !== 'ALL' && v.jurisdiction !== currentFilter.country) return false;
+          if (currentFilter.risk !== 'ALL' && v.threatLevel !== currentFilter.risk) return false;
+          if (currentFilter.commodity !== 'ALL' && v.commodity !== currentFilter.commodity) return false;
+          if (currentFilter.rail !== 'ALL' && v.rail !== currentFilter.rail) return false;
+          return true;
+        });
+      }
+
+      function resetFilters() {
+        document.getElementById('filterCountry').value = 'ALL';
+        document.getElementById('filterRisk').value = 'ALL';
+        document.getElementById('filterCommodity').value = 'ALL';
+        document.getElementById('filterRail').value = 'ALL';
+        currentFilter = { country: 'ALL', risk: 'ALL', commodity: 'ALL', rail: 'ALL' };
+
+        const badge = document.getElementById('activeFilterBadge');
+        if (badge) badge.innerText = 'ALL RECORDS';
+
+        renderMapLayers();
+        renderTable();
+        updateKPIs();
+        zoomToTheatre('global');
+      }
+
+      function updateKPIs() {
+        const filtered = getFilteredVessels();
+        const totalVolume = filtered.reduce((acc, curr) => acc + curr.volumeUSD, 0);
+
+        // Adjust for macro baseline when ALL selected
+        const displayVol = currentFilter.country === 'ALL' && currentFilter.risk === 'ALL'
+          ? '$34.82B'
+          : `$${(totalVolume / 1000000).toFixed(1)}M`;
+
+        const kpiVol = document.getElementById('kpiVolume');
+        const kpiVess = document.getElementById('kpiVessels');
+        const kpiWall = document.getElementById('kpiWallets');
+
+        if (kpiVol) kpiVol.innerText = displayVol;
+        if (kpiVess) kpiVess.innerText = `${filtered.length} Hulls`;
+        if (kpiWall) kpiWall.innerText = `${filtered.length * 6 + 14} Targets`;
+      }
+
+      /**
+       * ZOOM TO THEATRE HELPER
+       */
+      function zoomToTheatre(theatreKey) {
+        if (!leafletMap) return;
+        const config = GEOINT_DATA.theatres[theatreKey];
+        if (config) {
+          leafletMap.flyTo(config.center, config.zoom, { duration: 1.2 });
+        }
+      }
+
+      /**
+       * TARGET INSPECTOR CONTROLLER
+       */
+      function selectVessel(vesselId) {
+        const vessel = GEOINT_DATA.vessels.find(v => v.id === vesselId);
+        if (!vessel) return;
+
+        // Hide empty state, show inspector content
+        document.getElementById('inspectorEmptyState')?.classList.add('hidden');
+        document.getElementById('inspectorContent')?.classList.remove('hidden');
+
+        // Populate fields
+        document.getElementById('insVesselName').innerText = vessel.name;
+        document.getElementById('insVesselIMO').innerText = `IMO ${vessel.imo} • MMSI ${vessel.mmsi}`;
+        document.getElementById('insFlag').innerText = `${vessel.flag} (Age: ${vessel.age}y)`;
+        document.getElementById('insJurisdiction').innerText = vessel.jurisdiction;
+        document.getElementById('insCargo').innerText = `${vessel.commodity} (${vessel.volumeFormatted})`;
+        document.getElementById('insDeception').innerText = vessel.deceptionMethod;
+        document.getElementById('insWallet').innerText = vessel.wallet;
+        document.getElementById('insIntelNote').innerText = `"${vessel.citation}"`;
+
+        const badge = document.getElementById('insRiskBadge');
+        if (badge) {
+          badge.innerText = vessel.threatLevel.toUpperCase();
+          if (vessel.threatLevel === 'Critical') {
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-neon-red border border-red-500/50";
+          } else if (vessel.threatLevel === 'High Risk') {
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-orange-950 text-neon-orange border border-orange-500/50";
+          } else {
+            badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-neon-amber border border-amber-500/50";
+          }
+        }
+
+        // Action buttons
+        const focusBtn = document.getElementById('insFocusMapBtn');
+        if (focusBtn) {
+          focusBtn.onclick = () => {
+            leafletMap.flyTo(vessel.realCoords, 7, { duration: 1.0 });
+          };
+        }
+
+        const fullDossierBtn = document.getElementById('insFullDossierBtn');
+        if (fullDossierBtn) {
+          fullDossierBtn.onclick = () => openDossierModal(vessel.id);
+        }
+      }
+
+      /**
+       * MODAL DOSSIER CONTROLLER
+       */
+      function openDossierModal(vesselId) {
+        const id = vesselId || document.getElementById('insVesselIMO')?.innerText.match(/\d+/)?.[0];
+        let vessel = GEOINT_DATA.vessels.find(v => v.id === vesselId || v.imo === id);
+        if (!vessel) vessel = GEOINT_DATA.vessels[0];
+
+        document.getElementById('modalVesselTitle').innerText = `${vessel.name} (IMO ${vessel.imo})`;
+        document.getElementById('modalFlag').innerText = vessel.flag;
+        document.getElementById('modalAge').innerText = `${vessel.age} Years (${vessel.age > 20 ? 'Elderly Tonnage' : 'Standard'})`;
+        document.getElementById('modalJurisdiction').innerText = vessel.jurisdiction;
+        document.getElementById('modalCommodity').innerText = vessel.commodity;
+        document.getElementById('modalDeception').innerText = vessel.deceptionMethod;
+        document.getElementById('modalVolume').innerText = vessel.volumeFormatted;
+        document.getElementById('modalRoute').innerText = vessel.routePath.map((_, i) => `Waypoint ${i+1}`).join(' → ');
+        document.getElementById('modalWallet').innerText = `${vessel.wallet} (${vessel.walletAddress})`;
+        document.getElementById('modalIntel').innerText = vessel.citation;
+        document.getElementById('modalTheatreBadge').innerText = vessel.theatre.replace('_', ' ').toUpperCase();
+
+        const badge = document.getElementById('modalRiskBadge');
+        if (badge) {
+          badge.innerText = vessel.threatLevel.toUpperCase();
+        }
+
+        const locateBtn = document.getElementById('modalMapLocateBtn');
+        if (locateBtn) {
+          locateBtn.onclick = () => {
+            closeDossierModal();
+            // Switch to Map Tab if not on it
+            document.querySelector('[data-tab="map-tab"]')?.click();
+            setTimeout(() => {
+              leafletMap.flyTo(vessel.realCoords, 7, { duration: 1.0 });
+            }, 200);
+          };
+        }
+
+        document.getElementById('dossierModal')?.classList.remove('hidden');
+      }
+
+      function closeDossierModal() {
+        document.getElementById('dossierModal')?.classList.add('hidden');
+      }
+
+      /**
+       * TAB SWITCHER CONTROLLER
+       */
+      function initTabs() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-tab');
+
+            // Update button styles
+            tabBtns.forEach(b => {
+              b.classList.remove('active', 'border-neon-cyan', 'text-neon-cyan', 'font-semibold');
+              b.classList.add('border-transparent', 'text-slate-400');
+            });
+            btn.classList.add('active', 'border-neon-cyan', 'text-neon-cyan', 'font-semibold');
+            btn.classList.remove('border-transparent', 'text-slate-400');
+
+            // Toggle view visibility
+            document.querySelectorAll('.tab-view').forEach(view => {
+              view.classList.add('hidden');
+              view.classList.remove('active-view');
+            });
+
+            if (targetId === 'map-tab') {
+              document.getElementById('view-map').classList.remove('hidden');
+              leafletMap.invalidateSize();
+            } else if (targetId === 'sankey-tab') {
+              document.getElementById('view-sankey').classList.remove('hidden');
+              renderSankey();
+            } else if (targetId === 'analytics-tab') {
+              document.getElementById('view-analytics').classList.remove('hidden');
+              renderCharts();
+            } else if (targetId === 'dossier-tab') {
+              document.getElementById('view-dossier').classList.remove('hidden');
+            } else if (targetId === 'policy-tab') {
+              document.getElementById('view-policy').classList.remove('hidden');
+            }
+          });
+        });
+      }
+
+      /**
+       * D3 SANKEY DIAGRAM IMPLEMENTATION
+       */
+      function initSankey() {
+        // Will be rendered when tab opened or dynamically resized
+        window.addEventListener('resize', () => {
+          if (!document.getElementById('view-sankey').classList.contains('hidden')) {
+            renderSankey();
+          }
+        });
+      }
+
+      function renderSankey() {
+        const svg = d3.select("#sankeySvg");
+        svg.selectAll("*").remove();
+
+        const container = document.getElementById("sankeyWrapper");
+        const width = container.clientWidth || 900;
+        const height = 450;
+
+        svg.attr("width", width).attr("height", height);
+
+        const sankeyGen = d3.sankey()
+          .nodeWidth(16)
+          .nodePadding(18)
+          .extent([[10, 15], [width - 15, height - 20]]);
+
+        // Deep copy data to avoid mutation issues
+        const graphData = {
+          nodes: GEOINT_DATA.sankeyData.nodes.map(d => ({ ...d })),
+          links: GEOINT_DATA.sankeyData.links.map(d => ({ ...d }))
+        };
+
+        const { nodes, links } = sankeyGen(graphData);
+
+        // Color scale
+        const colorScale = d3.scaleOrdinal()
+          .domain([0, 1, 2, 3, 4])
+          .range(["#ff3366", "#ffaa00", "#00e5ff", "#00f0aa", "#a855f7"]);
+
+        // Draw Links
+        const link = svg.append("g")
+          .attr("fill", "none")
+          .selectAll("path")
+          .data(links)
+          .join("path")
+          .attr("d", d3.sankeyLinkHorizontal())
+          .attr("stroke", d => {
+            if (d.source.index < 4) return "rgba(255, 51, 102, 0.4)";
+            if (d.source.index < 8) return "rgba(255, 170, 0, 0.4)";
+            if (d.source.index < 12) return "rgba(0, 229, 255, 0.4)";
+            return "rgba(0, 240, 170, 0.4)";
+          })
+          .attr("stroke-width", d => Math.max(1, d.width))
+          .style("transition", "stroke-opacity 0.2s")
+          .on("mouseenter", function(event, d) {
+            d3.select(this).attr("stroke-opacity", 0.9).attr("stroke", "#00e5ff");
+          })
+          .on("mouseleave", function(event, d) {
+            d3.select(this).attr("stroke-opacity", 0.5);
+          });
+
+        link.append("title")
+          .text(d => `${d.source.name} → ${d.target.name}\nVolume: $${d.value.toFixed(1)} Billion`);
+
+        // Draw Nodes
+        const node = svg.append("g")
+          .selectAll("g")
+          .data(nodes)
+          .join("g");
+
+        node.append("rect")
+          .attr("x", d => d.x0)
+          .attr("y", d => d.y0)
+          .attr("height", d => Math.max(4, d.y1 - d.y0))
+          .attr("width", d => d.x1 - d.x0)
+          .attr("fill", (d, i) => {
+            if (i < 4) return "#ff3366";
+            if (i < 8) return "#ffaa00";
+            if (i < 12) return "#00e5ff";
+            if (i < 15) return "#a855f7";
+            return "#00f0aa";
+          })
+          .attr("rx", 3)
+          .attr("stroke", "#070b13")
+          .attr("stroke-width", 1.5)
+          .append("title")
+          .text(d => `${d.name}\nTotal Value: $${d.value.toFixed(1)}B`);
+
+        // Node Labels
+        node.append("text")
+          .attr("x", d => d.x0 < width / 2 ? d.x1 + 8 : d.x0 - 8)
+          .attr("y", d => (d.y1 + d.y0) / 2)
+          .attr("dy", "0.35em")
+          .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+          .text(d => d.name)
+          .attr("fill", "#cbd5e1")
+          .attr("font-size", "10px")
+          .attr("font-family", "monospace")
+          .attr("font-weight", "500");
+      }
+
+      /**
+       * CHART.JS TIME-SERIES & DISTRIBUTION CHARTS
+       */
+      function initCharts() {
+        // Prepare and render charts
+        renderCharts();
+      }
+
+      function renderCharts() {
+        // Destroy existing instances if refreshing
+        if (timeSeriesChartInstance) timeSeriesChartInstance.destroy();
+        if (assetChartInstance) assetChartInstance.destroy();
+        if (flagsChartInstance) flagsChartInstance.destroy();
+        if (travelRuleChartInstance) travelRuleChartInstance.destroy();
+
+        // 1. Time-Series Chart (Spike in Dark Fleet vs. Crypto Volume 2022-2026)
+        const tsCtx = document.getElementById('timeSeriesChart')?.getContext('2d');
+        if (tsCtx) {
+          timeSeriesChartInstance = new Chart(tsCtx, {
+            type: 'line',
+            data: {
+              labels: [
+                '2022 Q1 (Invasion)', '2022 Q2 (Ronin / Blender)', '2022 Q4 (G7 Price Cap)', 
+                '2023 Q2 (Sinbad Surge)', '2023 Q4 (OFAC Cargo Note)', '2024 Q2 (DMM / Kerch EW)', 
+                '2024 Q4 (19 MMSI Spoofs)', '2025 Q1 (EU 16th Pkg / Bybit)', '2025 Q3 (Grinex / A7A5 $1B/d)', 
+                '2026 Q3 (Report Analysis)'
+              ],
+              datasets: [
+                {
+                  label: 'Dark Fleet AIS-Dark Voyage Days (Monthly Index)',
+                  data: [120, 240, 680, 890, 1150, 1420, 1860, 2210, 2480, 2690],
+                  borderColor: '#ff3366',
+                  backgroundColor: 'rgba(255, 51, 102, 0.1)',
+                  fill: true,
+                  tension: 0.35,
+                  yAxisID: 'y'
+                },
+                {
+                  label: 'Monthly Illicit USDT / Crypto Settlement ($ Millions)',
+                  data: [150, 480, 820, 1200, 1650, 2100, 2800, 3600, 4100, 4550],
+                  borderColor: '#00e5ff',
+                  backgroundColor: 'transparent',
+                  borderDash: [5, 5],
+                  tension: 0.35,
+                  yAxisID: 'y1'
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                legend: {
+                  labels: { color: '#cbd5e1', font: { family: 'monospace', size: 11 } }
+                },
+                tooltip: {
+                  backgroundColor: '#0c1222',
+                  titleColor: '#00e5ff',
+                  bodyColor: '#e2e8f0',
+                  borderColor: '#1f2e4d',
+                  borderWidth: 1
+                }
+              },
+              scales: {
+                x: {
+                  grid: { color: 'rgba(31, 46, 77, 0.5)' },
+                  ticks: { color: '#94a3b8', font: { size: 10, family: 'monospace' } }
+                },
+                y: {
+                  type: 'linear',
+                  position: 'left',
+                  grid: { color: 'rgba(31, 46, 77, 0.5)' },
+                  ticks: { color: '#ff3366', font: { size: 10, family: 'monospace' } },
+                  title: { display: true, text: 'AIS Dark Voyage Days', color: '#ff3366' }
+                },
+                y1: {
+                  type: 'linear',
+                  position: 'right',
+                  grid: { drawOnChartArea: false },
+                  ticks: { color: '#00e5ff', font: { size: 10, family: 'monospace' } },
+                  title: { display: true, text: 'Monthly Crypto Vol ($M)', color: '#00e5ff' }
+                }
+              }
+            }
+          });
+        }
+
+        // 2. Asset Diversification Doughnut Chart
+        const assetCtx = document.getElementById('assetChart')?.getContext('2d');
+        if (assetCtx) {
+          assetChartInstance = new Chart(assetCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['USDT on TRON (58%)', 'Bitcoin BTC (24%)', 'Monero XMR (11%)', 'A7A5 Ruble Token (7%)'],
+              datasets: [{
+                data: [58, 24, 11, 7],
+                backgroundColor: ['#00e5ff', '#ffaa00', '#a855f7', '#ff3366'],
+                borderColor: '#0c1222',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 9, family: 'monospace' } } }
+              }
+            }
+          });
+        }
+
+        // 3. Flags of Convenience Bar Chart
+        const flagsCtx = document.getElementById('flagsChart')?.getContext('2d');
+        if (flagsCtx) {
+          flagsChartInstance = new Chart(flagsCtx, {
+            type: 'bar',
+            data: {
+              labels: ['Gabon', 'Cameroon', 'Palau', 'Panama', 'Eswatini', 'Liberia'],
+              datasets: [{
+                label: 'Tracked Dark Fleet Hulls',
+                data: [42, 38, 29, 24, 18, 15],
+                backgroundColor: '#ffaa00',
+                borderRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: '#94a3b8', font: { size: 9, family: 'monospace' } } },
+                y: { grid: { color: 'rgba(31, 46, 77, 0.4)' }, ticks: { color: '#94a3b8' } }
+              }
+            }
+          });
+        }
+
+        // 4. FATF Travel Rule Compliance Gap
+        const travelCtx = document.getElementById('travelRuleChart')?.getContext('2d');
+        if (travelCtx) {
+          travelRuleChartInstance = new Chart(travelCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Fully Enforcing (11)', 'Legislation Passed (18)', 'Non-Compliant Corridors (69)'],
+              datasets: [{
+                data: [11, 18, 69],
+                backgroundColor: ['#00f0aa', '#ffaa00', '#ff3366'],
+                borderColor: '#0c1222',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 9, family: 'monospace' } } }
+              }
+            }
+          });
+        }
+      }
+
+      /**
+       * DOSSIER REGISTRY TABLE RENDERING
+       */
+      function renderTable() {
+        const tbody = document.getElementById('vesselTableBody');
+        if (!tbody) return;
+
+        const searchTerm = document.getElementById('tableSearch')?.value.toLowerCase() || '';
+        const filtered = getFilteredVessels().filter(v => {
+          if (!searchTerm) return true;
+          return (
+            v.name.toLowerCase().includes(searchTerm) ||
+            v.imo.includes(searchTerm) ||
+            v.flag.toLowerCase().includes(searchTerm) ||
+            v.jurisdiction.toLowerCase().includes(searchTerm) ||
+            v.commodity.toLowerCase().includes(searchTerm) ||
+            v.wallet.toLowerCase().includes(searchTerm)
+          );
+        });
+
+        // Update tab count
+        const countBadge = document.getElementById('tabVesselCount');
+        if (countBadge) countBadge.innerText = filtered.length;
+
+        tbody.innerHTML = '';
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" class="py-8 text-center text-slate-500">
+                No tracked entities matching current filters.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        filtered.forEach(vessel => {
+          const isCrit = vessel.threatLevel === 'Critical';
+          const badgeClass = isCrit
+            ? 'bg-red-950 text-neon-red border-red-500/40'
+            : (vessel.threatLevel === 'High Risk' ? 'bg-orange-950 text-neon-orange border-orange-500/40' : 'bg-amber-950 text-neon-amber border-amber-500/40');
+
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-cyber-850/60 transition cursor-pointer";
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-bold text-white">
+              <div>${vessel.name}</div>
+              <div class="text-[10px] text-slate-400">IMO ${vessel.imo}</div>
+            </td>
+            <td class="py-3 px-3">
+              <span class="text-slate-200">${vessel.flag}</span>
+              <span class="block text-[9px] text-slate-500">Age: ${vessel.age}y</span>
+            </td>
+            <td class="py-3 px-3 text-slate-200">${vessel.jurisdiction}</td>
+            <td class="py-3 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">
+                ${vessel.threatLevel}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-slate-300 max-w-[200px] truncate" title="${vessel.deceptionMethod}">
+              ${vessel.deceptionMethod}
+            </td>
+            <td class="py-3 px-3 text-slate-200">${vessel.commodity}</td>
+            <td class="py-3 px-3 text-neon-cyan max-w-[160px] truncate" title="${vessel.wallet}">
+              ${vessel.wallet}
+            </td>
+            <td class="py-3 px-3 text-right font-bold text-neon-emerald">
+              ${vessel.volumeFormatted}
+            </td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="selectVessel('${vessel.id}'); openDossierModal('${vessel.id}');" class="px-2 py-1 rounded bg-cyber-950 hover:bg-cyber-800 border border-cyber-border text-neon-cyan text-[10px] font-sans font-medium transition">
+                Dossier
+              </button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+        // Search bar listener
+        document.getElementById('tableSearch')?.addEventListener('input', renderTable);
+      }
+
+      /**
+       * POLICY INTERVENTION SIMULATOR (MODULE 5)
+       */
+      function initSimulator() {
+        const simSar = document.getElementById('simSar');
+        const simTravelRule = document.getElementById('simTravelRule');
+        const simFlagBar = document.getElementById('simFlagBar');
+
+        const calculateImpact = () => {
+          let score = 0;
+          let monthlyDisrupted = 0;
+
+          if (simSar?.checked) {
+            score += 32;
+            monthlyDisrupted += 920;
+          }
+          if (simTravelRule?.checked) {
+            score += 41;
+            monthlyDisrupted += 1240;
+          }
+          if (simFlagBar?.checked) {
+            score += 24;
+            monthlyDisrupted += 730;
+          }
+
+          // Format results
+          const scoreEl = document.getElementById('simAttritionScore');
+          const savedEl = document.getElementById('simMonthlySaved');
+
+          if (scoreEl) {
+            scoreEl.innerText = `${Math.min(97, score).toFixed(1)}% ILLEGAL VALUE SUPPRESSION`;
+          }
+          if (savedEl) {
+            savedEl.innerText = `$${(monthlyDisrupted / 1000).toFixed(2)} Billion`;
+          }
+        };
+
+        simSar?.addEventListener('change', calculateImpact);
+        simTravelRule?.addEventListener('change', calculateImpact);
+        simFlagBar?.addEventListener('change', calculateImpact);
+      }
+
+      /**
+       * SAR / AIS SIMULATION TRIGGER
+       */
+      function simulateSarDetection() {
+        // Find a random vessel and simulate SAR alert
+        const randomVessel = GEOINT_DATA.vessels[Math.floor(Math.random() * GEOINT_DATA.vessels.length)];
+        
+        // Switch to map
+        document.querySelector('[data-tab="map-tab"]')?.click();
+
+        // Fly to location
+        leafletMap.flyTo(randomVessel.realCoords, 6, { duration: 1.2 });
+
+        // Update advisory ticker
+        const ticker = document.getElementById('advisoryTicker');
+        if (ticker) {
+          ticker.innerText = `[SAR DETECTION ALERT] Sentinel-1 SAR constellation confirmed dark hull matching ${randomVessel.name} (IMO ${randomVessel.imo}) loading unbroadcast cargo!`;
+        }
+
+        // Select vessel in inspector
+        setTimeout(() => {
+          selectVessel(randomVessel.id);
+        }, 1200);
+      }
+
+      /**
+       * DATASET EXPORT UTILITY
+       */
+      function exportDataset() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(GEOINT_DATA, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `ShadowNet_Forensic_Dataset_${Date.now()}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+      }
+    </script>
+  </body>
+</html>
